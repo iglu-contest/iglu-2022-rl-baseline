@@ -1,5 +1,6 @@
 import sys
 import json
+import os
 from os.path import join
 
 import torch
@@ -115,6 +116,10 @@ class APPOHolder:
             self.rnn_states = None
 
 def download_weights():
+    directory = ('../train_dir/0012/force_envs_single_thread=False;num_envs_per_worker=1;num_workers=10/' +
+             'TreeChopBaseline-iglu/checkpoint_p0/')
+    if not os.path.exists(directory):
+        os.makedirs(directory)
     run = wandb.init(name='babycar27', project='iglu-checkpoints', job_type='train')
     artifact = run.use_artifact('iglu-checkpoints:v0')
     artifact_dir = artifact.download(
