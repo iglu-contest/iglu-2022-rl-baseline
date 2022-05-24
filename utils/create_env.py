@@ -11,6 +11,7 @@ from wrappers.common_wrappers import  VectorObservationWrapper,  \
 from wrappers.reward_wrappers import RangetRewardFilledField, Closeness
 from wrappers.loggers import SuccessRateWrapper, SuccessRateFullFigure
 from wrappers.multitask import Multitask
+from wrappers.target_generator import RandomFigure, DatasetFigure
 import gym
 
 
@@ -39,7 +40,7 @@ def make_iglu(*args, **kwargs):
 
     custom_grid = np.ones((9,11,11))
     env = GridWorld(custom_grid, render=False, select_and_place=True, max_steps=1000)
-    env = Multitask(env, make_holes=True)
+    env = Multitask(env, make_holes=True, fig_generator = RandomFigure)
     env = VectorObservationWrapper(env)
     env = Discretization(env, flat_action_space('human-level'))
     env = RangetRewardFilledField(env)

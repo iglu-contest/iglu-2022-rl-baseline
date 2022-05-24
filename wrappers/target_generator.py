@@ -1,6 +1,6 @@
 import numpy as np
 from wrappers.artist import random_relief_map, drow_circle, modify, figure_to_3drelief
-from dialogue.model import TargetPredictor
+
 
 
 def target_to_subtasks(targets_plane, hole_plane=None, color_plane=None):
@@ -65,7 +65,7 @@ class DatasetFigure():
     def __init__(self, path_to_targets = '../dialogue/augmented_targets.npy',
                  path_to_names = '../dialogue/augmented_target_name.npy',
                  path_to_chats = '../dialogue/augmented_chats.npy', generator = True, main_figure = None):
-
+        from dialogue.model import TargetPredictor
         self.augmented_targets = np.load(path_to_targets)[:300]
         self.augmented_targets_names = np.load(path_to_names)[:300]
         self.augmented_chats = np.load(path_to_chats)[:300]

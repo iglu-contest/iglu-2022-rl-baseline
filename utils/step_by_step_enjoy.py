@@ -8,6 +8,7 @@ from utils.config_validation import Experiment
 from argparse import Namespace
 from pathlib import Path
 
+import wandb
 from sample_factory.algorithms.utils.algo_utils import EXTRA_PER_POLICY_SUMMARIES
 
 from sample_factory.algorithms.appo.model import create_actor_critic
@@ -18,6 +19,7 @@ from sample_factory.algorithms.appo.actor_worker import transform_dict_observati
 from sample_factory.algorithms.appo.model_utils import get_hidden_size
 from sample_factory.envs.create_env import create_env
 from sample_factory.utils.utils import log, AttrDict
+from sample_factory.algorithms.utils.arguments import parse_args, load_from_checkpoint
 
 from models.models import ResnetEncoderWithTarget
 from create_env import make_iglu
@@ -111,3 +113,22 @@ class APPOHolder:
                                                        device=self.device)
         if all(dones):
             self.rnn_states = None
+
+if __name__ == "__main__":
+    run = wandb.init(name = 'babycar27', project = 'iglu-checkpoints', job_type='train')
+    artifact = run.use_artifact('iglu-checkpoints:v0')
+    artifact_dir = artifact.download(
+        root='../train_dir/0012/force_envs_single_thread=False;num_envs_per_worker=1;num_workers=10/' +
+             'TreeChopBaseline-iglu/checkpoint_p0/')
+    print(artifact_dir)
+
+    register_custom_components()
+    env = make_iglu()
+    cfg = parse_args(argv=['--algo=APPO', '--env=IGLUSilentBuilder-v0', '--experiment=TreeChopBaseline-iglu',
+                           '--experiments_root=force_envs_single_thread=False;num_envs_per_worker=1;num_workers=10',
+                           '--train_dir=../train_dir/0012'], evaluation=True)
+    cfg = load_from_checkpoint(cfg)
+
+    cfg.setdefault("path_to_weights", "../train_dir/0012/force_envs_single_thread=False;num_envs_per_worker=1;num_workers=10/TreeChopBaseline-iglu")
+
+    APPOHolder(cfg)
