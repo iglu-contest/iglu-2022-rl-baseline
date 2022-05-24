@@ -116,14 +116,14 @@ class APPOHolder:
             self.rnn_states = None
 
 def download_weights():
-    directory = ('../train_dir/0012/force_envs_single_thread=False;num_envs_per_worker=1;num_workers=10/' +
+    directory = ('./train_dir/0012/force_envs_single_thread=False;num_envs_per_worker=1;num_workers=10/' +
              'TreeChopBaseline-iglu/checkpoint_p0/')
     if not os.path.exists(directory):
         os.makedirs(directory)
     run = wandb.init(name='babycar27', project='iglu-checkpoints', job_type='train')
     artifact = run.use_artifact('iglu-checkpoints:v0')
     artifact_dir = artifact.download(
-        root='../train_dir/0012/force_envs_single_thread=False;num_envs_per_worker=1;num_workers=10/' +
+        root='./train_dir/0012/force_envs_single_thread=False;num_envs_per_worker=1;num_workers=10/' +
              'TreeChopBaseline-iglu/checkpoint_p0/')
     print("Weights path - ", artifact_dir)
 
@@ -132,11 +132,11 @@ def make_agent():
     env = make_iglu()
     cfg = parse_args(argv=['--algo=APPO', '--env=IGLUSilentBuilder-v0', '--experiment=TreeChopBaseline-iglu',
                            '--experiments_root=force_envs_single_thread=False;num_envs_per_worker=1;num_workers=10',
-                           '--train_dir=../train_dir/0012'], evaluation=True)
+                           '--train_dir=./train_dir/0012'], evaluation=True)
     cfg = load_from_checkpoint(cfg)
 
     cfg.setdefault("path_to_weights",
-                   "../train_dir/0012/force_envs_single_thread=False;num_envs_per_worker=1;num_workers=10/TreeChopBaseline-iglu")
+                   "./train_dir/0012/force_envs_single_thread=False;num_envs_per_worker=1;num_workers=10/TreeChopBaseline-iglu")
     return APPOHolder(cfg)
 
 if __name__ == "__main__":
