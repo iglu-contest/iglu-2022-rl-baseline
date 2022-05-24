@@ -114,13 +114,17 @@ class APPOHolder:
         if all(dones):
             self.rnn_states = None
 
-if __name__ == "__main__":
-    run = wandb.init(name = 'babycar27', project = 'iglu-checkpoints', job_type='train')
+def download_weights():
+    run = wandb.init(name='babycar27', project='iglu-checkpoints', job_type='train')
     artifact = run.use_artifact('iglu-checkpoints:v0')
     artifact_dir = artifact.download(
         root='../train_dir/0012/force_envs_single_thread=False;num_envs_per_worker=1;num_workers=10/' +
              'TreeChopBaseline-iglu/checkpoint_p0/')
-    print(artifact_dir)
+    print("Weights path - ", artifact_dir)
+
+
+if __name__ == "__main__":
+    download_weights()
 
     register_custom_components()
     env = make_iglu()
