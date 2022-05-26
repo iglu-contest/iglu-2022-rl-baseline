@@ -242,7 +242,7 @@ class GridWorld(Env):
         grid_size = (self.grid != 0).sum().item()
         wrong_placement = (self.prev_grid_size - grid_size) * self.wrong_placement_scale
         max_int = self.task.maximal_intersection(self.grid) if wrong_placement != 0 else self.max_int
-        done = False
+        done =  max_int == self.task.target_size #False
         self.prev_grid_size = grid_size
         right_placement = (max_int - self.max_int) * self.right_placement_scale
         self.max_int = max_int
