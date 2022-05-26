@@ -1,29 +1,15 @@
-import gym
-#import tensorflow as tf
-import torch
-import gym
 
-from copy import deepcopy as copy
-from gym import spaces
-import ray
 import numpy as np
-from torch._C import Value
-import yaml
 from sample_factory.envs.env_registry import global_env_registry
 from sample_factory.algorithms.appo.model_utils import register_custom_encoder
 from sample_factory.algorithms.appo.enjoy_appo import enjoy
 from sample_factory.algorithms.utils.arguments import parse_args
-from ray.rllib.agents.registry import get_trainer_class
 import sys
-import argparse
-from collections import OrderedDict
-import random
-from gym.wrappers import TimeLimit
 
-from wrappers.loggers import  VideoLogger, Logger,SuccessRateFullFigure
+from wrappers.loggers import  VideoLogger
 from sample_factory.algorithms.utils.arguments import arg_parser
 from models.models import ResnetEncoderWithTarget
-#from wrappers.custom_tasks import make_3d_cube, make_relief_map, make_3d_cube_in_relief
+
 from wrappers.target_generator import RandomFigure, DatasetFigure
 from wrappers.common_wrappers import  VectorObservationWrapper,  \
     Discretization,  flat_action_space,ColorWrapper
