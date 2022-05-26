@@ -113,7 +113,7 @@ class Multitask(gym.Wrapper):
             color_relief = self.fig_generator.color
         else:
             color_relief = None
-        if self.fig_generator.use_color:
+        if isinstance(self.fig_generator, DatasetFigure):
             if self.name not in self.tasks:
                 self.tasks[self.name] = 1
             else:
