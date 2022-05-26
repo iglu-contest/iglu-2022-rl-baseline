@@ -20,7 +20,7 @@ from collections import OrderedDict
 import random
 from gym.wrappers import TimeLimit
 
-from wrappers.loggers import ActLogger, VideoLogger, Logger,SuccessRateFullFigure,ActLoggerFull
+from wrappers.loggers import  VideoLogger, Logger,SuccessRateFullFigure
 from sample_factory.algorithms.utils.arguments import arg_parser
 from models.models import ResnetEncoderWithTarget
 #from wrappers.custom_tasks import make_3d_cube, make_relief_map, make_3d_cube_in_relief
@@ -37,22 +37,19 @@ from visual import Visual
 
 
 def make_iglu(*args, **kwargs):
-    custom_grid = np.zeros((9,11,11))
+    custom_grid = np.ones((9,11,11))
     env = GridWorld(custom_grid, render=True, select_and_place=True, max_steps= 10050)
     env = Visual(env)    #
-    env = Multitask(env,  True, True,fig_generator = RandomFigure)
-   # env = RandomTargetWrapper(env)
+    figure_generator = RandomFigure
+    env = Multitask(env,  True, True,fig_generator = figure_generator)
     env = VectorObservationWrapper(env)
     env = Discretization(env, flat_action_space('human-level'))
-    #env = ColorWrapper(env)
+    env = ColorWrapper(env)
     env = RangetRewardFilledField(env)
-   # env = Final(env)
-  #  env = SuccessRateWrapper(env)
-  #  env = SuccessRateFullFigure(env)
-   # env = Logger(env)
     env = VideoLogger(env)
- #   env = R1_score(env)
-#    env = Statistics(env, st_name = "test.csv")
+    env = R1_score(env)
+    if isinstance(figure_generator, DatasetFigure):
+        env = Statistics(env, st_name = "test.csv")
     return env
 
 
@@ -69,7 +66,7 @@ def main():
     register_custom_components()
     cfg = parse_args(argv=['--algo=APPO', '--env=IGLUSilentBuilder-v0', '--experiment=TreeChopBaseline-iglu',
                            '--experiments_root=force_envs_single_thread=False;num_envs_per_worker=1;num_workers=10',
-                           '--train_dir=train_dir/0012'], evaluation=True)
+                           '--train_dir=../train_dir/0012'], evaluation=True)
     status = enjoy(cfg)
     return status
 
