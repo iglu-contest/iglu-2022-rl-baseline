@@ -141,7 +141,6 @@ class ColorWrapper(ActionsWrapper):
     def wrap_action(self, action=None):
         tcolor = np.sum(self.env.task.target_grid)
         if (action>self.color_space[0]) and (action<self.color_space[1]) and tcolor>0:
-            print("CHANGE - ", action, self.color_space[0]+tcolor)
             action = int(self.color_space[0]+tcolor)
         yield action
 
