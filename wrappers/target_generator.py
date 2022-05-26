@@ -30,7 +30,7 @@ class RandomFigure():
         self.std_range = (95, 160) if cnf is None else cnf['std_range']
         self.figures_count_range = (15, 30) if cnf is None else cnf['figures_count_range']
         self.relief, self.hole_relief = self.make_task()
-        self.use_color = False
+        self.use_color = True
         #return self.relief, self.hole_relief
 
     def make_task(self):
@@ -56,7 +56,7 @@ class RandomFigure():
             hole_relief[X[i], Y[i]] = np.random.randint(0, relief[X[i], Y[i]])
         self.relief = relief
         self.hole_relief = hole_relief
-
+        self.color = np.zeros((9,11,11)) + 1#blue
         return relief, hole_relief
 
 
