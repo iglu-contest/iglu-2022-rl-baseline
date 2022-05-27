@@ -1,28 +1,27 @@
 from collections import defaultdict
 
 import numpy as np
-
-from sample_factory.algorithms.appo.model_utils import register_custom_encoder, EncoderBase, \
+import torch
+from sample_factory.algorithms.appo.model_utils import EncoderBase, \
     ResBlock, nonlinearity, get_obs_shape
 from sample_factory.algorithms.utils.pytorch_utils import calc_num_elements
 from sample_factory.utils.timing import Timing
-
 from torch import nn
-import torch
 
 
-def GridStuctureEncoder(input_channel, block_config, net_config, timing):
-        layers = []
-        for i, (out_channels, res_blocks) in enumerate(block_config):
-            layers.extend([
-                nn.Conv2d(input_channel, out_channels, kernel_size=3, stride=1, padding=1),  # padding SAME
-            ])
-            for j in range(res_blocks):
-                layers.append(ResBlock(net_config, out_channels, out_channels, timing))
-            input_ch_grid = out_channels
-        layers.append(nonlinearity(net_config))
-        grid_encoder= nn.Sequential(*layers)
-        return grid_encoder
+def grid_stucture_encoder(input_channel, block_config, net_config, timing):
+    layers = []
+    for i, (out_channels, res_blocks) in enumerate(block_config):
+        layers.extend([
+            nn.Conv2d(input_channel, out_channels, kernel_size=3, stride=1, padding=1),  # padding SAME
+        ])
+        for j in range(res_blocks):
+            layers.append(ResBlock(net_config, out_channels, out_channels, timing))
+        input_ch_grid = out_channels
+    layers.append(nonlinearity(net_config))
+    grid_encoder = nn.Sequential(*layers)
+    return grid_encoder
+
 
 class ResnetEncoderWithTarget(EncoderBase):
     def __init__(self, cfg, obs_space, timing):
@@ -35,9 +34,9 @@ class ResnetEncoderWithTarget(EncoderBase):
         input_ch_grid = grid_shape.obs[0]
         grid_conf = [[64, 3]]
         ### Grid embedding
-        self.conv_grid = GridStuctureEncoder(input_ch_grid, grid_conf, cfg, self.timing)
+        self.conv_grid = grid_stucture_encoder(input_ch_grid, grid_conf, cfg, self.timing)
         ### Target embedding
-        self.conv_target = GridStuctureEncoder(input_ch_targ, target_conf, cfg, self.timing)
+        self.conv_target = grid_stucture_encoder(input_ch_targ, target_conf, cfg, self.timing)
 
         self.inventory_compass_emb = nn.Sequential(
             nn.Linear(11, cfg.hidden_size),
@@ -51,32 +50,32 @@ class ResnetEncoderWithTarget(EncoderBase):
         self.init_fc_blocks(self.conv_target_out_size + self.conv_grid_out_size + cfg.hidden_size)
 
     def forward(self, obs_dict):
-
-        #values for normalization
-        abs_max_obs = np.array([10, 8, 10, 180, 360]) # x, y, z, yaw, pitch
-        true_max_obs = np.array([5, 0, 5, 90, 0]) # x, y, z, yaw, pitch
+        # values for normalization
+        abs_max_obs = np.array([10, 8, 10, 180, 360])  # x, y, z, yaw, pitch
+        true_max_obs = np.array([5, 0, 5, 90, 0])  # x, y, z, yaw, pitch
         max_inventory_val = 190
 
         abs_max_obs = torch.from_numpy(abs_max_obs).cuda()
         true_max_obs = torch.from_numpy(true_max_obs).cuda()
 
-        inventory_compass = torch.cat([obs_dict['inventory'] / max_inventory_val, (obs_dict['agentPos'] + true_max_obs) / abs_max_obs], -1)
+        inventory_compass = torch.cat(
+            [obs_dict['inventory'] / max_inventory_val, (obs_dict['agentPos'] + true_max_obs) / abs_max_obs], -1)
         inv_comp_emb = self.inventory_compass_emb(inventory_compass)
 
         target = torch.zeros_like((obs_dict['target_grid']))
-        target[obs_dict['target_grid'] > 0] = 1 #put 1 if task is build block
-        target[obs_dict['target_grid'] < 0] = -1 #put -1 if task is remove block
+        target[obs_dict['target_grid'] > 0] = 1  # put 1 if task is build block
+        target[obs_dict['target_grid'] < 0] = -1  # put -1 if task is remove block
 
         tg = self.conv_target(target)
         tg_embed = tg.contiguous().view(-1, self.conv_target_out_size)
 
         grid = torch.zeros_like((obs_dict['grid']))
-        grid[obs_dict['grid'] != 0] = 1 # put 1 on blocks place (make blocks same color)
+        grid[obs_dict['grid'] != 0] = 1  # put 1 on blocks place (make blocks same color)
 
         grid = self.conv_grid(grid) - 0.5
         grid_embed = grid.contiguous().view(-1, self.conv_grid_out_size)
 
-        head_input = torch.cat([inv_comp_emb, tg_embed,grid_embed], -1)
+        head_input = torch.cat([inv_comp_emb, tg_embed, grid_embed], -1)
 
         x = self.forward_fc_blocks(head_input)
         return x
@@ -111,7 +110,6 @@ def main():
 
         obs, reward, done, info = env.step([env.action_space.sample()])
     obs = obs[0]
-
 
     obs['agentPos'] = torch.Tensor(obs['agentPos'])[None]
     obs['inventory'] = torch.Tensor(obs['inventory'])[None]

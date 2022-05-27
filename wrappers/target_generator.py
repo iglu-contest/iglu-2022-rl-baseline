@@ -1,6 +1,6 @@
 import numpy as np
-from wrappers.artist import random_relief_map, drow_circle, modify, figure_to_3drelief
 
+from wrappers.artist import random_relief_map, drow_circle, modify, figure_to_3drelief
 
 
 def target_to_subtasks(targets_plane, hole_plane=None, color_plane=None):
@@ -24,14 +24,15 @@ def target_to_subtasks(targets_plane, hole_plane=None, color_plane=None):
                 custom_grid[z, x, y] = -1
                 yield (x - 5, z - 1, y - 5, -1), custom_grid
 
+
 class RandomFigure():
-    def __init__(self, cnf = None):
+    def __init__(self, cnf=None):
         self.figures_height_range = (3, 8) if cnf is None else cnf['figures_height_range']
         self.std_range = (95, 160) if cnf is None else cnf['std_range']
         self.figures_count_range = (15, 30) if cnf is None else cnf['figures_count_range']
         self.relief, self.hole_relief = self.make_task()
         self.use_color = True
-        #return self.relief, self.hole_relief
+        # return self.relief, self.hole_relief
 
     def make_task(self):
         ###make relief
@@ -40,12 +41,12 @@ class RandomFigure():
                                    size=(11, 11))
         x, y = np.random.randint(0, 12, size=2)
         relief_mask = random_relief_map(center=(x, y), std=np.random.randint(*self.std_range) / 100,
-                                        count=np.random.randint(*self.figures_count_range)) #from artist
+                                        count=np.random.randint(*self.figures_count_range))  # from artist
         plane[relief_mask] = 1
         relief[plane != 1] = 0
 
         field_center = (5, 5)
-        center_mask = drow_circle(relief, R=2, coord=field_center) #from artist
+        center_mask = drow_circle(relief, R=2, coord=field_center)  # from artist
         relief[center_mask] = 0
 
         ###make holes
@@ -56,15 +57,15 @@ class RandomFigure():
             hole_relief[X[i], Y[i]] = np.random.randint(0, relief[X[i], Y[i]])
         self.relief = relief
         self.hole_relief = hole_relief
-        self.color = np.zeros((9,11,11)) + 1#blue
+        self.color = np.zeros((9, 11, 11)) + 1  # blue
         return relief, hole_relief
 
 
 class DatasetFigure():
 
-    def __init__(self, path_to_targets = '../dialogue/augmented_targets.npy',
-                 path_to_names = '../dialogue/augmented_target_name.npy',
-                 path_to_chats = '../dialogue/augmented_chats.npy', generator = True, main_figure = None):
+    def __init__(self, path_to_targets='../dialogue/augmented_targets.npy',
+                 path_to_names='../dialogue/augmented_target_name.npy',
+                 path_to_chats='../dialogue/augmented_chats.npy', generator=True, main_figure=None):
         from dialogue.model import TargetPredictor
         self.augmented_targets = np.load(path_to_targets)[:300]
         self.augmented_targets_names = np.load(path_to_names)[:300]
@@ -76,7 +77,7 @@ class DatasetFigure():
         self.main_figure = main_figure
         self.relief, self.hole_relief = self.make_task()
 
-    def load_figure(self, idx, use_dialogue = True):
+    def load_figure(self, idx, use_dialogue=True):
         name = self.augmented_targets_names[idx]
         at = self.augmented_targets[idx][:, :, :]
         at[self.augmented_targets[idx] > 0] = 1
@@ -118,7 +119,7 @@ class DatasetFigure():
             relief, holes, figure, name, rp, is_modified, original, f1_onstart = self.load_figure(idx, use_dialogue)
 
             yield relief, holes, figure, name, rp, is_modified, original, f1_onstart, self.augmented_chats[idx]
-        return 0
+        return
 
     def make_task(self):
         if self.main_figure is not None:
@@ -136,4 +137,3 @@ class DatasetFigure():
         self.chat = figure[8]
 
         return relief, holes
-

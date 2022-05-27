@@ -1,32 +1,32 @@
-import gym
-import os
 import datetime
+import logging
+import os
 import pickle
 import uuid
-import logging
+
+import cv2
+import gym
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import cv2
+
 from wrappers.common_wrappers import Wrapper
-from wrappers.artist import drow_circle
+
 logger = logging.getLogger(__file__)
 IGLU_ENABLE_LOG = os.environ.get('IGLU_ENABLE_LOG', '')
-
 
 
 class Statistics(Wrapper):
     def __init__(self, env, st_name="iglu_dataset.csv"):
         super().__init__(env)
         self.statisctics = pd.DataFrame(columns=['TaskName', 'SuccessRate',
-                                   'FDone', 'FFail', 'LastBlock', 'LastTask', 'LastAction', 'TotalTry',
+                                                 'FDone', 'FFail', 'LastBlock', 'LastTask', 'LastAction', 'TotalTry',
                                                  'BlockInFig', 'BlocksDo', 'Complete', 'RightPredicted',
                                                  "IsModified", "R1_score", "r1sum", "maximal_intersection",
                                                  "target_grid_size", "current_grid_size", "f1_onstart"])
         self.statisctics.set_index('TaskName', inplace=True)
         self.info = dict()
         self.st_name = st_name
-        self.last_action =  17
+        self.last_action = 17
 
     def reset(self):
         if 'done' in self.info:
@@ -34,15 +34,16 @@ class Statistics(Wrapper):
             fig_done = 0
             if self.info['done'] == 'full':
                 fig_done = 1
-            binary = ['attack', 'forward', 'back', 'left', 'right', 'jump', 'camera', 'camera', 'camera', 'camera', 'MOVE']
+            binary = ['attack', 'forward', 'back', 'left', 'right', 'jump', 'camera', 'camera', 'camera', 'camera',
+                      'MOVE']
             if self.last_action >= len(binary):
                 act = 'MOVE'
             else:
                 act = binary[self.last_action]
 
-            #print(self.env.last_target)
-            ltarget = np.where(self.env.task.target_grid!=0)
-            ltarget = (ltarget[0],ltarget[1],ltarget[2], self.env.task.target_grid.sum())
+            # print(self.env.last_target)
+            ltarget = np.where(self.env.task.target_grid != 0)
+            ltarget = (ltarget[0], ltarget[1], ltarget[2], self.env.task.target_grid.sum())
             if self.statisctics['TotalTry'].mean() >= 10:
                 self.st_name = "next_stage.csv"
             try:
@@ -60,7 +61,7 @@ class Statistics(Wrapper):
                 compl = self.statisctics.loc[task_name]['Complete']
                 rp = self.statisctics.loc[task_name]['RightPredicted']
                 rssum = self.statisctics.loc[task_name]['r1sum']
-              #  modified = 0
+            #  modified = 0
             except:
                 sr = 0
                 fdone = 0
@@ -69,28 +70,29 @@ class Statistics(Wrapper):
                 fblock = np.sum(self.env.relief_map) - np.sum(self.env.hole_map)
                 builded = len(np.where(self.env.current_grid != 0)[0])
                 blockdo = builded
-                compl = blockdo/fblock
+                compl = blockdo / fblock
                 rp = self.env.rp
                 rssum = 0
 
             f1_onstart = float(self.env.f1_onstart)
 
             rssum += self.info['episode_extra_stats']['R1_score']
-            print("....................................................................................................")
+            print(
+                "....................................................................................................")
             print(rssum)
             print(self.info['episode_extra_stats']['maximal_intersection'])
             print(self.info['episode_extra_stats']['target_grid_size'])
             print(self.info['episode_extra_stats']['current_grid_size'])
-            print("....................................................................................................")
+            print(
+                "....................................................................................................")
 
             modified = self.env.modified
             builded = len(np.where(self.env.current_grid != 0)[0])
             blockdo = builded
-            compl += blockdo/fblock
-            compl = compl/2
+            compl += blockdo / fblock
+            compl = compl / 2
 
-
-            nttry = ttry+1
+            nttry = ttry + 1
             r1score = rssum / nttry
 
             if fig_done:
@@ -104,8 +106,8 @@ class Statistics(Wrapper):
             current_grid_size = self.info['episode_extra_stats']['current_grid_size']
             self.statisctics.loc[task_name] = [nsr, fdone, ffail, lblock, ltarget,
                                                act, nttry, fblock, blockdo, compl,
-                                               rp,modified,r1score, rssum, maximal_intersection,
-                                               target_grid_size, current_grid_size,f1_onstart]
+                                               rp, modified, r1score, rssum, maximal_intersection,
+                                               target_grid_size, current_grid_size, f1_onstart]
             self.statisctics.to_csv(self.st_name)
 
         return super().reset()
@@ -114,11 +116,12 @@ class Statistics(Wrapper):
         obs, reward, done, info = super().step(action)
         self.info = info
         self.last_action = action
-      #  new_obs = obs.copy()
-        #obs['chat'] = self.env.chat
-       # new_obs['chat'] = self.env.chat
-       # print("new_obs", new_obs.keys())
+        #  new_obs = obs.copy()
+        # obs['chat'] = self.env.chat
+        # new_obs['chat'] = self.env.chat
+        # print("new_obs", new_obs.keys())
         return obs, reward, done, info
+
 
 class VideoLogger(Wrapper):
     def __init__(self, env, every=50):
@@ -132,26 +135,26 @@ class VideoLogger(Wrapper):
         self.flushed = False
         self.new_session = True
         self.add_to_name = ''
-        self.info = {'done':0}
+        self.info = {'done': 0}
         os.makedirs(self.dirname, exist_ok=True)
 
     def flush(self):
-       # print(self.env.agent_win)
-        #if not self.env.agent_win:
-        #if self.info['done'] == 'full' and self.info['done'] != 'right_move':
+        # print(self.env.agent_win)
+        # if not self.env.agent_win:
+        # if self.info['done'] == 'full' and self.info['done'] != 'right_move':
         if self.filename is not None:
-                    # with open(f'{self.filename}-r{self.running_reward}.json', 'w') as f:
-                    #  json.dump(self.actions, f)
-                    self.out.release()
-                    os.rename(f'{self.filename}.mp4', f'{self.filename}_{self.add_to_name}_{self.env.name}.mp4')
-                    #with open(f'{self.filename}-obs.pkl', 'wb') as f:
-                       # pickle.dump(self.obs, f)
-                    self.obs = []
-                    self.new_session = True
-        if True or self.info['done']!='full' and self.info['done']!='right_move':
+            # with open(f'{self.filename}-r{self.running_reward}.json', 'w') as f:
+            #  json.dump(self.actions, f)
+            self.out.release()
+            os.rename(f'{self.filename}.mp4', f'{self.filename}_{self.add_to_name}_{self.env.name}.mp4')
+            # with open(f'{self.filename}-obs.pkl', 'wb') as f:
+            # pickle.dump(self.obs, f)
+            self.obs = []
+            self.new_session = True
+        if True or self.info['done'] != 'full' and self.info['done'] != 'right_move':
             timestamp = datetime.datetime.now().strftime('%Y%m%dT%H%M%S')
             uid = str(uuid.uuid4().hex)
-            r = np.random.randint(0,11)
+            r = np.random.randint(0, 11)
             name = f'episode-{r}_{timestamp}-{uid}'
             self.filename = os.path.join(self.dirname, name)
             self.running_reward = 0
@@ -180,23 +183,23 @@ class VideoLogger(Wrapper):
         new_action = {}
         obs, reward, done, info = super().step(action)
         self.info = info
-        self.steps +=1
+        self.steps += 1
         self.actions.append(action)
-     #   print((obs))
+        #   print((obs))
         if 'obs' in obs:
-            image = np.transpose(obs['obs'], (0,1,2)) * 255
+            image = np.transpose(obs['obs'], (0, 1, 2)) * 255
         elif 'obs' in info:
             image = info['obs'] * 255
         self.add_to_name = info['done']
-        font = cv2.FONT_HERSHEY_SIMPLEX        # org
-        org = (8, 8)        # fontScale
-        fontScale = 0.3        # Blue color in BGR
-        color = (0, 0, 255)        # Line thickness of 2 px
+        font = cv2.FONT_HERSHEY_SIMPLEX  # org
+        org = (8, 8)  # fontScale
+        fontScale = 0.3  # Blue color in BGR
+        color = (0, 0, 255)  # Line thickness of 2 px
         thickness = 1
 
-        image = image[:,:,::-1].astype(np.uint8)
+        image = image[:, :, ::-1].astype(np.uint8)
         if True:
-            target = np.where(obs['target_grid']!=0)
+            target = np.where(obs['target_grid'] != 0)
             if obs['target_grid'][target] > 0:
                 act = 'Move block'
             else:
@@ -204,9 +207,9 @@ class VideoLogger(Wrapper):
             image = cv2.putText(image, f"{act} \\n-{target}", org, font,
                                 fontScale, color, thickness, cv2.LINE_AA)
 
-
             org = (8, 18)
-            binary = ['attack', 'forward', 'back', 'left', 'right', 'jump', 'camera', 'camera', 'camera', 'camera', 'MOVE']
+            binary = ['attack', 'forward', 'back', 'left', 'right', 'jump', 'camera', 'camera', 'camera', 'camera',
+                      'MOVE']
             if action >= len(binary):
                 act = 'MOVE'
             else:
@@ -225,17 +228,17 @@ class VideoLogger(Wrapper):
 
             org = (50, 158)
             color = (0, 255, 0)
-            image = cv2.putText(image, f"blocks - {len(np.where(obs['grid']!=0)[0])}", org, font,
+            image = cv2.putText(image, f"blocks - {len(np.where(obs['grid'] != 0)[0])}", org, font,
                                 fontScale, color, thickness, cv2.LINE_AA)
 
             org = (50, 188)
             color = (255, 0, 255)
-            builded = len(np.where(self.env.current_grid!=0)[0])
+            builded = len(np.where(self.env.current_grid != 0)[0])
             need_to_do = np.sum(self.env.relief_map) - np.sum(self.env.hole_map)
             image = cv2.putText(image, f"progress - {builded} / {need_to_do}", org, font,
                                 fontScale, color, thickness, cv2.LINE_AA)
 
-       #print(image.shape)
+        # print(image.shape)
         self.out.write(image)
         self.obs.append({k: v for k, v in obs.items() if k != 'obs'})
         self.obs[-1]['reward'] = reward
@@ -300,6 +303,7 @@ def cubes_coordinates(grid):
         points.append([x[idx], y[idx], z[idx]])
     return points
 
+
 class SuccessRateWrapper(gym.Wrapper):
     def __init__(self, env):
         super().__init__(env)
@@ -319,17 +323,18 @@ class SuccessRateWrapper(gym.Wrapper):
         if reward > 1 or done:
             self.tasks_count += 1
             if reward > 1:
-                self.sr+=1
-            info['episode_extra_stats']['SuccessRate'] = self.sr/self.tasks_count
+                self.sr += 1
+            info['episode_extra_stats']['SuccessRate'] = self.sr / self.tasks_count
         return observation, reward, done, info
+
 
 class SuccessRateFullFigure(gym.Wrapper):
 
     def step(self, action):
         observation, reward, done, info = self.env.step(action)
         info['episode_extra_stats'] = info.get('episode_extra_stats', {})
-       # roi = info['grid'][info['target_grid'] != 0]
-       # blocks = np.where(roi != 0)
+        # roi = info['grid'][info['target_grid'] != 0]
+        # blocks = np.where(roi != 0)
         if done:
             if info['done'] == 'full':
                 info['episode_extra_stats']['CoplitedRate'] = 1
@@ -343,16 +348,16 @@ class R1_score(gym.Wrapper):
     def step(self, action):
         observation, reward, done, info = self.env.step(action)
         info['episode_extra_stats'] = info.get('episode_extra_stats', {})
-       # roi = info['grid'][info['target_grid'] != 0]
-       # blocks = np.where(roi != 0)
+        # roi = info['grid'][info['target_grid'] != 0]
+        # blocks = np.where(roi != 0)
         if done:
             obs_grid = info['done_grid']
             grid = np.zeros_like(obs_grid)
             target = np.zeros_like(self.env.original)
-            grid[obs_grid!=0]=1
-            target[self.env.original!=0] = 1
+            grid[obs_grid != 0] = 1
+            target[self.env.original != 0] = 1
 
-            maximal_intersection = (grid*target).sum()
+            maximal_intersection = (grid * target).sum()
             current_grid_size = grid.sum()
             target_grid_size = target.sum()
             curr_prec = maximal_intersection / target_grid_size
@@ -373,6 +378,5 @@ class R1_score(gym.Wrapper):
             info['episode_extra_stats']['target_grid_size'] = target_grid_size
             info['episode_extra_stats']['current_grid_size'] = current_grid_size
 
-
-            #maximal_intersection = (grid * target).sum()
+            # maximal_intersection = (grid * target).sum()
         return observation, reward, done, info
