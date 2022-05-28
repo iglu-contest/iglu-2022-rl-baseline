@@ -7,7 +7,7 @@ from gridworld.env import GridWorld
 from wrappers.common_wrappers import VectorObservationWrapper, \
     Discretization, flat_action_space
 from wrappers.loggers import SuccessRateFullFigure
-from wrappers.multitask import Multitask
+from wrappers.multitask import TargetGenerator, SubtaskGenerator
 from wrappers.reward_wrappers import RangetRewardFilledField, Closeness
 from wrappers.target_generator import RandomFigure
 
@@ -35,8 +35,11 @@ class FakeObsWrapper(gym.ObservationWrapper):
 
 def make_iglu(*args, **kwargs):
     custom_grid = np.ones((9, 11, 11))
-    env = GridWorld(custom_grid, render=False, select_and_place=True, max_steps=1000)
-    env = Multitask(env, make_holes=True, fig_generator=RandomFigure)
+    env = GridWorld(custom_grid, render=False, select_and_place=True, max_steps=500)
+    #env = FakeObsWrapper(env)
+    figure_generator = RandomFigure
+    env = TargetGenerator(env, fig_generator=figure_generator)
+    env = SubtaskGenerator(env)
     env = VectorObservationWrapper(env)
     env = Discretization(env, flat_action_space('human-level'))
     env = RangetRewardFilledField(env)

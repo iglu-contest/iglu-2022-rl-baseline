@@ -14,7 +14,7 @@ from wrappers.target_generator import RandomFigure, DatasetFigure
 from wrappers.common_wrappers import  VectorObservationWrapper,  \
     Discretization,  flat_action_space,ColorWrapper
 
-from wrappers.multitask import Multitask
+from wrappers.multitask import SubtaskGenerator,TargetGenerator
 from wrappers.reward_wrappers import RangetRewardFilledField
 from wrappers.loggers import SuccessRateWrapper,Statistics,R1_score
 from gridworld.env import GridWorld
@@ -27,7 +27,8 @@ def make_iglu(*args, **kwargs):
     env = GridWorld(custom_grid, render=True, select_and_place=True, max_steps= 10050)
     env = Visual(env)    #
     figure_generator = RandomFigure
-    env = Multitask(env,  True, True,fig_generator = figure_generator)
+    env = TargetGenerator(env, fig_generator=RandomFigure)
+    env = SubtaskGenerator(env)
     env = VectorObservationWrapper(env)
     env = Discretization(env, flat_action_space('human-level'))
     env = ColorWrapper(env)

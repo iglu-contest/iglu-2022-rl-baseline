@@ -64,7 +64,7 @@ class ObsWrapper(Wrapper):
 
         info['grid'] = obs['grid']
         info['agentPos'] = obs['agentPos']
-        info['obs'] = obs['obs']
+        #info['obs'] = obs['obs']
         return self.observation(obs, reward, done, info), reward, done, info
 
 
@@ -149,7 +149,7 @@ class VectorObservationWrapper(ObsWrapper):
             'grid': gym.spaces.Box(low=0.0, high=6.0, shape=(9, 11, 11)),
             'inventory': gym.spaces.Box(low=0.0, high=20.0, shape=(6,)),
             'target_grid': gym.spaces.Box(low=0.0, high=6.0, shape=(9, 11, 11)),
-            'obs': gym.spaces.Box(low=0, high=1, shape=(self.size, self.size, 3), dtype=np.float32)
+        #    'obs': gym.spaces.Box(low=0, high=1, shape=(self.size, self.size, 3), dtype=np.float32)
         })
 
     def observation(self, obs, reward=None, done=None, info=None):
@@ -181,7 +181,7 @@ class VectorObservationWrapper(ObsWrapper):
             'grid': obs['grid'],
             'inventory': obs['inventory'],
             'target_grid': target_grid,
-            'obs':obs['obs']
+            #'obs':obs['obs']
         }
 
     def check_component(self, arr, name, low, hi):

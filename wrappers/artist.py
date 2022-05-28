@@ -44,7 +44,7 @@ def modif_tower(a):
     return a,modif
 
 def modify(figure):
-    modifs = []
+    modifs_list = []
     new_figure = np.zeros_like(figure)
     modifs = False
     for i in range(figure.shape[1]):
@@ -57,8 +57,8 @@ def modify(figure):
             binary = re.sub('[123456789]', '1', binary)
             p = re.findall("10+1", binary)
             if len(p) > 0:
-                modifs.append([i,j])
-    return modifs, new_figure
+                modifs_list.append([i,j])
+    return modifs_list, new_figure
 
 
 

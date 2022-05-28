@@ -12,9 +12,34 @@ from wrappers.target_generator import RandomFigure, DatasetFigure, target_to_sub
 logger = logging.getLogger(__file__)
 IGLU_ENABLE_LOG = os.environ.get('IGLU_ENABLE_LOG', '')
 
+class TargetGenerator(gym.Wrapper):
+    def __init__(self, env, make_holes=False, make_colors=False,fig_generator=RandomFigure):
+        super().__init__(env)
+      #  self.fig_generator = fig_generator()
+        self.make_holes = make_holes
+        self.make_colors = make_colors
+        self.figure = fig_generator()
 
-class Multitask(gym.Wrapper):
-    def __init__(self, env, make_holes=False, make_colors=False, steps_to_task=300, fig_generator=RandomFigure):
+    def reset(self):
+        X = []
+        self.figure.make_task()
+        if self.figure.use_color:
+            min_block_in_fig = 0
+        else:
+            min_block_in_fig = 9
+        while len(X) <= min_block_in_fig:
+            self.figure.make_task()
+            relief = self.figure.figure_parametrs['relief']
+            X, Y = np.where(relief != 0)
+        print("make figure")
+
+      #  self.env.task = Task("", self.figure.figure_parametrs['figure'])
+        return super().reset()
+
+
+
+class SubtaskGenerator(gym.Wrapper):
+    def __init__(self, env,  steps_to_task=300):
         super().__init__(env)
         self.relief_map = None
         self.task_generatir = None
@@ -27,20 +52,14 @@ class Multitask(gym.Wrapper):
         self.last_target = None
         self.color_map = None
         self.steps_to_task = steps_to_task
-        self.make_holes = make_holes
-        self.make_colors = make_colors
         self.steps = 0
         self.name = "Nothing"
         self.tasks = dict()
         self.original = None
-        self.fig_generator = fig_generator()
 
-    def init_relief(self, relief, hole_relief, color_relief, count_blocks):
-        """
-        Generate relief at the begining of episode.
-        Init position of blocks and agent postion.
 
-        """
+    def init_relief(self, count_blocks):
+        count_blocks = int(count_blocks)
         p = 1 if count_blocks <= 2 else self.prebuilds_percent  # вероятность старта с начала
         rangex = list(range(0, count_blocks - 1))
         prob = [p] + [(1 - p) / (count_blocks - 2) for i in range(count_blocks - 2)]
@@ -48,28 +67,15 @@ class Multitask(gym.Wrapper):
             prebuilded = np.random.choice(rangex, p=prob)
         except:
             prebuilded = 0
-        starting_grid = []
-        for i in range(prebuilded):
-            coord, _ = next(self.generator)
-            #  print("COORD -> -> ->", coord)
-            if coord[-1] > 0:
-                starting_grid.append(coord)
-                if (color_relief is None) or color_relief[coord[1] + 1, coord[0] + 5, coord[2] + 5] == 0:
-                    self.current_grid[coord[1] + 1, coord[0] + 5, coord[2] + 5] = 1
-                else:
-                    #  print(color_relief[coord[1] + 1, coord[0] + 5, coord[2] + 5])
-                    self.current_grid[coord[1] + 1, coord[0] + 5, coord[2] + 5] = color_relief[
-                        coord[1] + 1, coord[0] + 5, coord[2] + 5]
-                prev_act_is_add = True
-            else:
-                if prev_act_is_add:
-                    x, z, y, id = starting_grid[-1]
-                    Z = z + 1
-                    prev_act_is_add = False
-                coord = starting_grid.pop(-Z)
-                self.current_grid[coord[1] + 1, coord[0] + 5, coord[2] + 5] = 0
-                Z -= 1
-        self.preinited_grid[:, :, :] = self.current_grid
+        blocks = np.where(self.env.figure.figure_parametrs['figure']!=0)
+        Z,X,Y = (blocks[0][:prebuilded]-1,
+                         blocks[1][:prebuilded]-5,
+                         blocks[2][:prebuilded]-5)
+        idx = np.ones_like(X)
+        starting_grid = list(zip(X,Z,Y,idx))
+
+        self.current_grid = np.zeros((9,11,11))
+        self.current_grid[Z+1,X+5,Y+5] = 1
         return starting_grid, prebuilded
 
     def init_agent(self, task, last_block):
@@ -87,42 +93,9 @@ class Multitask(gym.Wrapper):
         return X, Z, Y
 
     def make_new_task(self):
-        X = []
-        self.fig_generator.make_task()
-        if self.fig_generator.use_color:
-            min_block_in_fig = 0
-        else:
-            min_block_in_fig = 9
-        while len(X) <= min_block_in_fig:
-            self.fig_generator.make_task()
-            relief = self.fig_generator.relief
-            X, Y = np.where(relief != 0)
-
-        if self.make_holes:
-            hole_relief = self.fig_generator.hole_relief
-        else:
-            hole_relief = None
-
-        if self.make_colors and self.fig_generator.use_color:
-            color_relief = self.fig_generator.color
-        else:
-            color_relief = None
-        if isinstance(self.fig_generator, DatasetFigure):
-            if self.name not in self.tasks:
-                self.tasks[self.name] = 1
-            else:
-                self.tasks[self.name] += 1
-            self.original = self.fig_generator.original
-            self.name = self.fig_generator.name
-            self.f1_onstart = self.fig_generator.f1_onstart
-            self.rp = self.fig_generator.is_right_predicted
-            self.color_map = color_relief
-            self.modified = self.fig_generator.is_modified
-            self.chat = self.fig_generator.chat
-        self.relief_map = relief
-        self.hole_map = hole_relief
-        self.generator = target_to_subtasks(relief, hole_relief, color_relief)
-        starting_grid, prebuilded = self.init_relief(relief, hole_relief, color_relief, len(X))
+        self.generator = target_to_subtasks(self.env.figure)
+        size = self.env.figure.figure_parametrs['relief'].sum()
+        starting_grid, prebuilded = self.init_relief( size)
         try:
             task = next(self.generator)
         except:
@@ -147,17 +120,15 @@ class Multitask(gym.Wrapper):
         self.steps = 0
         try:
             coord, task = next(self.generator)
-        #   print(f"!!!!! >>>>>> {np.sum(task)}")
         except StopIteration:
             return True
-
         self.update_field(new_block, do=do)
-
         self.env.task = Task("", task)
         self.agent_win = False
         return False
 
     def reset(self):
+        obs = super().reset()
         self.last_target = np.where(self.env.task.target_grid != 0)
         self.old_grid = self.current_grid[:, :, :]
         self.steps = 0
@@ -172,12 +143,12 @@ class Multitask(gym.Wrapper):
         if self.old_preinited_grid is None:
             self.old_preinited_grid = self.preinited_grid
         self.env.task = Task("", task)
-        return super().reset()
+        return obs
 
     def step(self, action):
         obs, reward, done, info = super().step(action)
-        if done:
-            raise Exception("catch done")
+       # if done:
+        #    raise Exception("catch done")
         self.done_obs = obs['grid']
         self.steps += 1
         self.last_agent_rotation = obs['agentPos'][3:]

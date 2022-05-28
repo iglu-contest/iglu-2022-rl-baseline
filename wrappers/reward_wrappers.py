@@ -73,8 +73,8 @@ class RangetRewardFilledField(RangetReward):
     def step(self, action):
         obs, reward, done, info = super().step(action)
 
-        if done:
-            raise Exception("Why&")
+       # if done:
+       #     raise Exception("Why&")
         if done:
             info['done'] = 'len_done_%s' % self.steps
         info['done'] = 'len_done_%s' % self.steps

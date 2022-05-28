@@ -231,12 +231,12 @@ class VideoLogger(Wrapper):
             image = cv2.putText(image, f"blocks - {len(np.where(obs['grid'] != 0)[0])}", org, font,
                                 fontScale, color, thickness, cv2.LINE_AA)
 
-            org = (50, 188)
-            color = (255, 0, 255)
-            builded = len(np.where(self.env.current_grid != 0)[0])
-            need_to_do = np.sum(self.env.relief_map) - np.sum(self.env.hole_map)
-            image = cv2.putText(image, f"progress - {builded} / {need_to_do}", org, font,
-                                fontScale, color, thickness, cv2.LINE_AA)
+            # org = (50, 188)
+            # color = (255, 0, 255)
+            # builded = len(np.where(self.env.current_grid != 0)[0])
+            # need_to_do = np.sum(self.env.relief_map) - np.sum(self.env.hole_map)
+            # image = cv2.putText(image, f"progress - {builded} / {need_to_do}", org, font,
+            #                     fontScale, color, thickness, cv2.LINE_AA)
 
         # print(image.shape)
         self.out.write(image)
