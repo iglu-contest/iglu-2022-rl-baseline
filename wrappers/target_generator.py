@@ -110,12 +110,15 @@ class RandomFigure(Figure):
 
         blocks_index = np.where((figure!= 0))
         count_of_blocks = blocks_index[0].shape[0]
-        holes_count = np.random.randint(0, int(count_of_blocks * 0.7))
-        holes_indx_filter = np.random.permutation(blocks_index[0].shape[0])[:holes_count]
-        holes_indx = (blocks_index[0][holes_indx_filter],
-                      blocks_index[1][holes_indx_filter],
-                      blocks_index[2][holes_indx_filter])
-        figure[holes_indx] = 0
+        if count_of_blocks>=10:
+            holes_count = np.random.randint(0, int(count_of_blocks * 0.7))
+            holes_indx_filter = np.random.permutation(blocks_index[0].shape[0])[:holes_count]
+            holes_indx = (blocks_index[0][holes_indx_filter],
+                          blocks_index[1][holes_indx_filter],
+                          blocks_index[2][holes_indx_filter])
+            figure[holes_indx] = 0
+        else:
+            holes_indx = [[],[],[]]
         self.hole_indx = holes_indx
         self.figure = figure
         self.simplify()
