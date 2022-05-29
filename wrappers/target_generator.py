@@ -18,11 +18,12 @@ def target_to_subtasks(figure):
                 custom_grid[z, x, y] = int(color_plane[z, x, y])
                 yield (x - 5, z - 1, y - 5, int(color_plane[z, x, y])), custom_grid
 
-        if len(xy_holes)>0:
+        if len(xy_holes)>0 and x<10 and y<10:
             holes_in_xy = ((xy_holes - [x, y])[:,0]==0) & ((xy_holes - [x, y])[:,1]==0)
             holes_in_xy = np.where(holes_in_xy == 1)[0]
             last_height = 0
             z = -1
+
             for height in zh[holes_in_xy]:
                 print(zh[holes_in_xy])
                 for z in range(last_height, height-1):
