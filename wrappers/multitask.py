@@ -5,12 +5,21 @@ import gym
 import numpy as np
 
 from gridworld.task import Task
-from wrappers.target_generator import RandomFigure, DatasetFigure, target_to_subtasks
+from wrappers.target_generator import RandomFigure, Figure, target_to_subtasks
 
 # from iglu.tasks import RandomTasks
 
 logger = logging.getLogger(__file__)
 IGLU_ENABLE_LOG = os.environ.get('IGLU_ENABLE_LOG', '')
+
+class MultitaskFormat(gym.Wrapper):
+    def __init__(self, env):
+        super().__init__(env)
+
+    def reset(self):
+        self.figure = Figure(figure = self.env.task.target_grid)
+        return super().reset()
+
 
 class TargetGenerator(gym.Wrapper):
     def __init__(self, env, make_holes=False, make_colors=False,fig_generator=RandomFigure):
@@ -31,12 +40,7 @@ class TargetGenerator(gym.Wrapper):
             self.figure.make_task()
             relief = self.figure.figure_parametrs['relief']
             X, Y = np.where(relief != 0)
-        print("make figure")
-
-      #  self.env.task = Task("", self.figure.figure_parametrs['figure'])
         return super().reset()
-
-
 
 class SubtaskGenerator(gym.Wrapper):
     def __init__(self, env,  steps_to_task=300):

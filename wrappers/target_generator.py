@@ -39,39 +39,27 @@ def target_to_subtasks(figure):
                 last_height = height
                 yield (x - 5, z - 1, y - 5, -2), custom_grid
 
-
-def target_to_subtasks_simpl(targets_plane, hole_plane=None, color_plane=None):
-    X, Y = np.where(targets_plane >= 1)
-    for x, y in zip(X, Y):
-        for z in range(targets_plane[x, y]):
-            custom_grid = np.zeros((9, 11, 11))
-            if (color_plane is None) or (color_plane[z, x, y] == 0):
-                custom_grid[z, x, y] = 1
-                yield (x - 5, z - 1, y - 5, 1), custom_grid
-            else:
-                custom_grid[z, x, y] = int(color_plane[z, x, y])
-                yield (x - 5, z - 1, y - 5, int(color_plane[z, x, y])), custom_grid
-        if hole_plane is not None:
-            try:
-                houl_depth = hole_plane[x, y]
-            except:
-                raise Exception("Something wrong!")
-            for z in range(houl_depth):
-                custom_grid = np.zeros((9, 11, 11))
-                custom_grid[z, x, y] = -1
-                yield (x - 5, z - 1, y - 5, -1), custom_grid
-
-
 class Figure():
-    def __init__(self):
-        self.figure = None
-        self.relief = None
-        self.holes = None
+    def __init__(self, figure = None):
+        self.use_color = True #use color in figure generation
+        self.figure = None #figure without color
         self.figure_parametrs = None
-        self.use_color = True
-        self.hole_indx = None
-        self.relief = None
-        self.simpl_holes = None
+        self.hole_indx = None #all holes indexes
+        self.simpl_holes = None #holes only on the bottom
+        self.relief = None #2d array of figure
+        if figure:
+            self.to_multitask_format(figure)
+
+    def to_multitask_format(self, figure_witn_colors):
+        figure = np.zeros_like(figure_witn_colors)
+        figure[figure_witn_colors > 0] = 1
+        self.figure = figure
+        holes, _ = modify(figure)
+        _, _, full_figure = self.simplify()
+        self.hole_indx = np.where((figure == 0) & (full_figure != 0))
+        figure_parametrs = {'figure': figure, 'color': figure_witn_colors}
+        self.figure_parametrs = figure_parametrs
+        return figure
 
     def simplify(self):
         if self.figure is not None:
@@ -95,7 +83,6 @@ class RandomFigure(Figure):
         self.color = color
 
     def make_task(self):
-        ###make relief
         plane = np.zeros((11, 11))
         relief = np.random.randint(1, np.random.randint(*self.figures_height_range),
                                    size=(11, 11))
@@ -110,12 +97,15 @@ class RandomFigure(Figure):
 
         blocks_index = np.where((figure!= 0))
         count_of_blocks = blocks_index[0].shape[0]
-        holes_count = np.random.randint(0, int(count_of_blocks * 0.7))
-        holes_indx_filter = np.random.permutation(blocks_index[0].shape[0])[:holes_count]
-        holes_indx = (blocks_index[0][holes_indx_filter],
-                      blocks_index[1][holes_indx_filter],
-                      blocks_index[2][holes_indx_filter])
-        figure[holes_indx] = 0
+        if count_of_blocks>6:
+            holes_count = np.random.randint(0, int(count_of_blocks * 0.7))
+            holes_indx_filter = np.random.permutation(blocks_index[0].shape[0])[:holes_count]
+            holes_indx = (blocks_index[0][holes_indx_filter],
+                          blocks_index[1][holes_indx_filter],
+                          blocks_index[2][holes_indx_filter])
+            figure[holes_indx] = 0
+        else:
+            holes_indx = [[], [], []]
         self.hole_indx = holes_indx
         self.figure = figure
         self.simplify()
@@ -152,19 +142,15 @@ class DatasetFigure(Figure):
         else:
             figure_ = self.augmented_targets[idx]
             rp = 1 #is figure right predicted
-        figure = np.zeros_like(figure_)
-        figure[figure_ > 0] = 1
-        self.figure = figure
-        holes, _ =  modify(figure)
-        _, _, full_figure = self.simplify()
-        self.hole_indx = np.where((figure == 0)&(full_figure!=0))
-        print(full_figure.sum())
-        print(self.hole_indx )
-        figure_parametrs = {'figure':figure,'color': figure_, 'name': name, 'original': original, 'right_predicted': rp}
-        self.figure_parametrs = figure_parametrs
+
+        figure = self.to_multitask_format(figure_)
+        self.figure_parametrs['name'] = name
+        self.figure_parametrs['original']=original
+        self.figure_parametrs['right_predicted']= rp
+        self.figure_parametrs['relief'] = self.relief
         return figure
 
-    def figures_generator(self, id=None, use_dialogue=True):
+    def figures_generator(self, use_dialogue=True):
         i = 0
         while True:
             idx = i % len(self.augmented_targets)
@@ -179,8 +165,6 @@ class DatasetFigure(Figure):
             figure = self.load_figure(self.main_figure, True)
         else:
             figure = next(self.generator)
-        self.simplify()
-        self.figure_parametrs['relief'] = self.relief
         return figure
 
 

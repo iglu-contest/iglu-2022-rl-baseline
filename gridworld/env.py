@@ -216,7 +216,7 @@ class GridWorld(Env):
         if self.select_and_place and inventory is not None:
             add = True
             remove = False
-            jump = True
+         #   jump = True
         self.agent.movement(strafe=strafe, jump=jump, inventory=inventory)
         self.agent.move_camera(*camera)
         self.agent.place_or_remove_block(remove=remove, place=add)
