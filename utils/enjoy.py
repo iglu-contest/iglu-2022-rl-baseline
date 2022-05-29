@@ -12,7 +12,7 @@ from models.models import ResnetEncoderWithTarget
 
 from wrappers.target_generator import RandomFigure, DatasetFigure
 from wrappers.common_wrappers import  VectorObservationWrapper,  \
-    Discretization,  flat_action_space,ColorWrapper
+    Discretization,  flat_action_space, ColorWrapper, JumpAfterPlace
 
 from wrappers.multitask import SubtaskGenerator,TargetGenerator
 from wrappers.reward_wrappers import RangetRewardFilledField
@@ -31,6 +31,7 @@ def make_iglu(*args, **kwargs):
     env = SubtaskGenerator(env)
     env = VectorObservationWrapper(env)
     env = Discretization(env, flat_action_space('human-level'))
+    env = JumpAfterPlace(env)
     env = ColorWrapper(env)
     env = RangetRewardFilledField(env)
     env = VideoLogger(env)
