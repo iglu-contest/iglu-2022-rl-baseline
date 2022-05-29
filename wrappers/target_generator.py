@@ -1,13 +1,14 @@
 import numpy as np
 
-from wrappers.artist import random_relief_map, drow_circle, modify, figure_to_3drelief
+from wrappers.artist import random_relief_map, modify, figure_to_3drelief
+
 
 def target_to_subtasks(figure):
     zh, xh, yh = figure.hole_indx
     xy_holes = np.asarray(list(zip(xh, yh)))
     targets_plane = figure.relief.astype(int)
-    color_plane = None#figure.figure_parametrs['color']
-    X,Y = np.where(figure.relief!=0)
+    color_plane = None  # figure.figure_parametrs['color']
+    X, Y = np.where(figure.relief != 0)
     for x, y in zip(X, Y):
         for z in range(targets_plane[x, y]):
             custom_grid = np.zeros((9, 11, 11))
@@ -18,35 +19,36 @@ def target_to_subtasks(figure):
                 custom_grid[z, x, y] = int(color_plane[z, x, y])
                 yield (x - 5, z - 1, y - 5, int(color_plane[z, x, y])), custom_grid
 
-        if len(xy_holes)>0 and x<10 and y<10:
-            holes_in_xy = ((xy_holes - [x, y])[:,0]==0) & ((xy_holes - [x, y])[:,1]==0)
+        if len(xy_holes) > 0 and x < 10 and y < 10:
+            holes_in_xy = ((xy_holes - [x, y])[:, 0] == 0) & ((xy_holes - [x, y])[:, 1] == 0)
             holes_in_xy = np.where(holes_in_xy == 1)[0]
             last_height = 0
             z = -1
 
             for height in zh[holes_in_xy]:
                 print(zh[holes_in_xy])
-                for z in range(last_height, height-1):
-                    print("z, h", z, height-1)
+                for z in range(last_height, height - 1):
+                    print("z, h", z, height - 1)
                     custom_grid = np.zeros((9, 11, 11))
-                    custom_grid[z, x+1, y+1] = 1
+                    custom_grid[z, x + 1, y + 1] = 1
                     yield (x - 4, z - 1, y - 4, 2), custom_grid
 
                 custom_grid = np.zeros((9, 11, 11))
-                #if z!=0:
-                z+=1
+                # if z!=0:
+                z += 1
                 custom_grid[z, x, y] = -1
                 last_height = height
                 yield (x - 5, z - 1, y - 5, -2), custom_grid
 
+
 class Figure():
-    def __init__(self, figure = None):
-        self.use_color = True #use color in figure generation
-        self.figure = None #figure without color
+    def __init__(self, figure=None):
+        self.use_color = True  # use color in figure generation
+        self.figure = None  # figure without color
         self.figure_parametrs = None
-        self.hole_indx = None #all holes indexes
-        self.simpl_holes = None #holes only on the bottom
-        self.relief = None #2d array of figure
+        self.hole_indx = None  # all holes indexes
+        self.simpl_holes = None  # holes only on the bottom
+        self.relief = None  # 2d array of figure
         if figure:
             self.to_multitask_format(figure)
 
@@ -72,10 +74,11 @@ class Figure():
             self.simpl_holes = holes
         else:
             raise Exception("The figure is not initialized! Use 'make_task' method to do it!")
-        return relief, holes,full_figure
+        return relief, holes, full_figure
+
 
 class RandomFigure(Figure):
-    def __init__(self, cnf=None, color = 1):
+    def __init__(self, cnf=None, color=1):
         super().__init__()
         self.figures_height_range = (3, 9) if cnf is None else cnf['figures_height_range']
         self.std_range = (95, 160) if cnf is None else cnf['std_range']
@@ -95,9 +98,9 @@ class RandomFigure(Figure):
         figure = np.zeros((9, 11, 11))
         figure[fig_filter] = 1
 
-        blocks_index = np.where((figure!= 0))
+        blocks_index = np.where((figure != 0))
         count_of_blocks = blocks_index[0].shape[0]
-        if count_of_blocks>6:
+        if count_of_blocks > 6:
             holes_count = np.random.randint(0, int(count_of_blocks * 0.7))
             holes_indx_filter = np.random.permutation(blocks_index[0].shape[0])[:holes_count]
             holes_indx = (blocks_index[0][holes_indx_filter],
@@ -109,7 +112,7 @@ class RandomFigure(Figure):
         self.hole_indx = holes_indx
         self.figure = figure
         self.simplify()
-        self.figure_parametrs = {'figure': figure, 'color': figure * self.color, 'relief':self.relief}
+        self.figure_parametrs = {'figure': figure, 'color': figure * self.color, 'relief': self.relief}
         return figure
 
 
@@ -138,15 +141,15 @@ class DatasetFigure(Figure):
             figure_ = self.target_predictor(self.augmented_chats[idx]).detach().numpy()
             fig2 = figure_[:, :, :]
             fig2[fig2 > 0] = 1
-            rp = (fig2 - at).sum() == 0 #is figure right predicted
+            rp = (fig2 - at).sum() == 0  # is figure right predicted
         else:
             figure_ = self.augmented_targets[idx]
-            rp = 1 #is figure right predicted
+            rp = 1  # is figure right predicted
 
         figure = self.to_multitask_format(figure_)
         self.figure_parametrs['name'] = name
-        self.figure_parametrs['original']=original
-        self.figure_parametrs['right_predicted']= rp
+        self.figure_parametrs['original'] = original
+        self.figure_parametrs['right_predicted'] = rp
         self.figure_parametrs['relief'] = self.relief
         return figure
 
@@ -178,6 +181,4 @@ if __name__ == "__main__":
         task = next(generator)
         print()
         print("task is: ", task[0][-1])
-        print(np.where(task[1]!=0))
-
-
+        print(np.where(task[1] != 0))
