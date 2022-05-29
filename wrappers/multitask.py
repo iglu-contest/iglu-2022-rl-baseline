@@ -24,9 +24,9 @@ class TargetGenerator(gym.Wrapper):
         X = []
         self.figure.make_task()
         if self.figure.use_color:
-            min_block_in_fig = 0
+            min_block_in_fig = 10
         else:
-            min_block_in_fig = 9
+            min_block_in_fig = 10
         while len(X) <= min_block_in_fig:
             self.figure.make_task()
             relief = self.figure.figure_parametrs['relief']
