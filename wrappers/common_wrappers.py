@@ -157,15 +157,17 @@ class ColorWrapper(ActionsWrapper):
 
 
 class VectorObservationWrapper(ObsWrapper):
-    def __init__(self, env):
+    def __init__(self, env, with_obs=False):
         super().__init__(env)
-        self.observation_space = gym.spaces.Dict({
+        obs_space ={
             'agentPos': gym.spaces.Box(low=-5000.0, high=5000.0, shape=(5,)),
             'grid': gym.spaces.Box(low=0.0, high=6.0, shape=(9, 11, 11)),
             'inventory': gym.spaces.Box(low=0.0, high=20.0, shape=(6,)),
             'target_grid': gym.spaces.Box(low=0.0, high=6.0, shape=(9, 11, 11)),
-        #    'obs': gym.spaces.Box(low=0, high=1, shape=(self.size, self.size, 3), dtype=np.float32)
-        })
+        }
+        if with_obs:
+            obs_space['obs'] = gym.spaces.Box(low=0, high=1, shape=(self.size, self.size, 3), dtype=np.float32)
+        self.observation_space = gym.spaces.Dict(obs_space)
 
     def observation(self, obs, reward=None, done=None, info=None):
         if IGLU_ENABLE_LOG == '1':
@@ -191,13 +193,16 @@ class VectorObservationWrapper(ObsWrapper):
                 target_grid = self.env.task.target_grid
         else:
             target_grid = self.env.task.target_grid
-        return {
+
+        obs = {
             'agentPos': obs['agentPos'],
             'grid': obs['grid'],
             'inventory': obs['inventory'],
             'target_grid': target_grid,
-            #'obs':obs['obs']
         }
+        if 'obs' in self.action_space:
+            obs['obs'] = obs['obs']
+        return obs
 
     def check_component(self, arr, name, low, hi):
         if (arr < low).any():
