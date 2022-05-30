@@ -24,8 +24,9 @@ from visual import Visual
 
 def make_iglu(*args, **kwargs):
     custom_grid = np.ones((9,11,11))
-    env = GridWorld(custom_grid, render=True, select_and_place=True, max_steps= 10050)
+    env = GridWorld(custom_grid, render=True, select_and_place=True, max_steps= 250)
     env = Visual(env)    #
+
     figure_generator = RandomFigure
     env = TargetGenerator(env, fig_generator=RandomFigure)
     env = SubtaskGenerator(env)
@@ -35,7 +36,7 @@ def make_iglu(*args, **kwargs):
     env = ColorWrapper(env)
     env = RangetRewardFilledField(env)
     env = VideoLogger(env)
-    env = R1_score(env)
+  #  env = R1_score(env)
     if isinstance(figure_generator, DatasetFigure):
         env = Statistics(env, st_name = "test.csv")
     return env
