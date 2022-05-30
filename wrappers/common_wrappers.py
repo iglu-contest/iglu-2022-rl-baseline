@@ -194,15 +194,15 @@ class VectorObservationWrapper(ObsWrapper):
         else:
             target_grid = self.env.task.target_grid
 
-        obs = {
+        obs_ = {
             'agentPos': obs['agentPos'],
             'grid': obs['grid'],
             'inventory': obs['inventory'],
             'target_grid': target_grid,
         }
         if 'obs' in self.observation_space:
-            obs['obs'] = obs['obs']
-        return obs
+            obs_['obs'] = obs['obs']
+        return obs_
 
     def check_component(self, arr, name, low, hi):
         if (arr < low).any():
