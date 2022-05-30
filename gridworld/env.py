@@ -254,13 +254,6 @@ class GridWorld(Env):
         self.wrong_placement = wrong_placement
         done = done or (self.step_no == self.max_steps)
         self.obs = obs
-        #done = self.step_no == self.max_steps
-        #reward = x - self.agent.prev_position[0] + z - self.agent.prev_position[2]
-        #if done:
-           # raise Exception("there is done")
-       # else:
-         #   pass
-           # pass print("no done")
         return obs, reward, done, {'target_grid': self.task.target_grid}
 
 import cv2
