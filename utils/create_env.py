@@ -5,7 +5,7 @@ from sample_factory.algorithms.utils.multi_agent_wrapper import MultiAgentWrappe
 
 from gridworld.env import GridWorld
 from wrappers.common_wrappers import VectorObservationWrapper, \
-    Discretization, flat_action_space
+    Discretization, flat_action_space,JumpAfterPlace
 from wrappers.loggers import SuccessRateFullFigure
 from wrappers.multitask import TargetGenerator, SubtaskGenerator
 from wrappers.reward_wrappers import RangetRewardFilledField, Closeness
@@ -42,6 +42,7 @@ def make_iglu(*args, **kwargs):
     env = SubtaskGenerator(env)
     env = VectorObservationWrapper(env)
     env = Discretization(env, flat_action_space('human-level'))
+    env = JumpAfterPlace(env)
     env = RangetRewardFilledField(env)
     env = Closeness(env)
     # env = SuccessRateWrapper(env)
