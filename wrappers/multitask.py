@@ -51,7 +51,7 @@ class SubtaskGenerator(gym.Wrapper):
         self.old_grid = np.zeros((9, 11, 11))
         self.preinited_grid = None
         self.old_preinited_grid = None
-        self.prebuilds_percent = 0.9
+        self.prebuilds_percent = 0.5
         self.last_agent_rotation = (0, 0)
         self.last_target = None
         self.color_map = None
@@ -71,39 +71,42 @@ class SubtaskGenerator(gym.Wrapper):
             prebuilded = np.random.choice(rangex, p=prob)
         except:
             prebuilded = 0
-        blocks = np.where(self.env.figure.figure_parametrs['figure']!=0)
-        Z,X,Y = (blocks[0][:prebuilded]-1,
-                         blocks[1][:prebuilded]-5,
-                         blocks[2][:prebuilded]-5)
+        figure = self.env.figure.figure_parametrs['figure'].copy()
+        blocks = np.where(figure)
+        ind = np.lexsort((blocks[0], blocks[1], blocks[2]))
+        Zorig, Xorig, Yorig = blocks[0][ind], blocks[1][ind], blocks[2][ind]
+        Z,X,Y= (Zorig[:prebuilded]-1,
+                        Xorig[:prebuilded]-5,
+                         Yorig[:prebuilded]-5)
         idx = np.ones_like(X)
         starting_grid = list(zip(X,Z,Y,idx))
-
         self.current_grid = np.zeros((9,11,11))
         self.current_grid[Z+1,X+5,Y+5] = 1
-        return starting_grid, prebuilded
+
+        return starting_grid, prebuilded, (Zorig, Xorig, Yorig)
 
     def init_agent(self, task, last_block):
-        if task[-1] < 0:
-            if task[1] > 0:
-                add = [(1, 0), (0, 1), (1, 1)]
-                ind = np.random.randint(0, 3)
-                X, Y = last_block[0] + add[ind][0], last_block[2] + add[ind][1]
-                Z = -1
-            else:
-                X, Y = last_block[0], last_block[2]
-                Z = last_block[1] + 1
         X, Y = last_block[0], last_block[2]
         Z = last_block[1] + 1
         return X, Z, Y
 
     def make_new_task(self):
+        size = int(self.env.figure.figure_parametrs['relief'].sum()*0.6)
+        starting_grid, prebuilded, sorted_blocks_coord = self.init_relief(size)
+        Z, X, Y = (sorted_blocks_coord[0][prebuilded:],
+                   sorted_blocks_coord[1][prebuilded:],
+                   sorted_blocks_coord[2][prebuilded:])
+        remains = np.zeros_like(self.env.figure.figure_parametrs['figure'])
+        remains[Z,X,Y]=1
+        self.env.figure.to_multitask_format(remains)
+        self.env.figure.simplify()
+      #  print(self.env.figure.figure_parametrs['figure'].sum(axis=0))
         self.generator = target_to_subtasks(self.env.figure)
-        size = self.env.figure.figure_parametrs['relief'].sum()
-        starting_grid, prebuilded = self.init_relief( size)
+
         try:
             task = next(self.generator)
         except:
-            raise Exception("Subtasks are over! Relief map sum:  %d"%self.relief_map.sum())
+            raise Exception("Subtasks are over! Relief map sum:  %d"%self.env.figure.relief.sum())
         coord, custom_grid = task
         if prebuilded != 0:
             X, Z, Y = self.init_agent(coord, starting_grid[-1])
