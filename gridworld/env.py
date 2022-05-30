@@ -233,10 +233,6 @@ class GridWorld(Env):
         diff = len((self.grid != old_grid).nonzero()[0])
         if diff > 1:
             raise ValueError('Impossible State!')
-        # print('>>>>>>>.', obs['grid'].nonzero())
-
-        #done = (self.step_no == self.max_steps)
-        #reward = 0
         grid_size = (self.grid != 0).sum().item()
         wrong_placement = (self.prev_grid_size - grid_size) * self.wrong_placement_scale
         max_int = self.task.maximal_intersection(self.grid) if wrong_placement != 0 else self.max_int
