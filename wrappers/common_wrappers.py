@@ -200,7 +200,7 @@ class VectorObservationWrapper(ObsWrapper):
             'inventory': obs['inventory'],
             'target_grid': target_grid,
         }
-        if 'obs' in self.action_space:
+        if 'obs' in self.observation_space:
             obs['obs'] = obs['obs']
         return obs
 
