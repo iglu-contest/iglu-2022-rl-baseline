@@ -207,8 +207,6 @@ class GridWorld(Env):
         return strafe, jump, inventory, camera, remove, add
 
     def step(self, action):
-        # print(self.agent.position, self.agent.rotation, action)
-        # print('>>>>>>>>>>')
         self.step_no += 1
         old_grid = self.grid.copy()
         self.agent.prev_position = self.agent.position
