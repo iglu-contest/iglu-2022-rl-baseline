@@ -2,8 +2,7 @@ from pyvirtualdisplay import Display
 # from selenium import webdriver
 # from selenium.webdriver.firefox.options import Options
 # Virtual display settings
-display = Display (visible = 0, size = (800, 600))
-display.start ()
+
 
 import numpy as np
 import json
@@ -11,6 +10,8 @@ import moviepy.editor as mvp
 from google.colab import files
 
 def init_virtual_display():
+    display = Display (visible = 0, size = (800, 600))
+    display.start ()
     import os
     import pyrender
     if 'PYOPENGL_PLATFORM' not in os.environ:
@@ -46,6 +47,6 @@ def init_virtual_display():
     print(gl.glGetString(gl.GL_VENDOR))
     # print(gl.glGetString(gl.GL_EXTENSIONS))
 
-
-init_virtual_display()
-init_virtual_display()
+if __name__ == "__main__":
+  init_virtual_display()
+  init_virtual_display()
