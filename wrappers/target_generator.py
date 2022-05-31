@@ -131,7 +131,7 @@ class RandomFigure(Figure):
             if count_of_blocks > 40:
                 holes_count = int(count_of_blocks * 0.5)
             else:
-                holes_count = np.random.randint(0, int(count_of_blocks * 0.7))
+                holes_count = np.random.randint(0, int(count_of_blocks * 0.4))
 
             holes_indx_filter = np.random.permutation(blocks_index[0].shape[0])[:holes_count]
             holes_indx = (blocks_index[0][holes_indx_filter],
