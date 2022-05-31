@@ -159,4 +159,6 @@ class SubtaskGenerator(gym.Wrapper):
         self.done_obs = obs['grid']
         self.steps += 1
         self.last_agent_rotation = obs['agentPos'][3:]
+        if self.steps == self.steps_to_task:
+            done = True
         return obs, reward, done, info
