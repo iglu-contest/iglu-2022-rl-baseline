@@ -55,7 +55,7 @@ def main():
     register_custom_components()
     cfg = parse_args(argv=['--algo=APPO', '--env=IGLUSilentBuilder-v0', '--experiment=TreeChopBaseline-iglu',
                            '--experiments_root=force_envs_single_thread=False;num_envs_per_worker=1;num_workers=10',
-                           '--train_dir=../train_dir/0012'], evaluation=True)
+                           '--train_dir=../train_dir/0005'], evaluation=True)
     status = enjoy(cfg)
     return status
 

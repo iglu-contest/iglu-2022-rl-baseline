@@ -35,7 +35,7 @@ class FakeObsWrapper(gym.ObservationWrapper):
 
 def make_iglu(*args, **kwargs):
     custom_grid = np.ones((9, 11, 11))
-    env = GridWorld(custom_grid, render=False, select_and_place=True, max_steps=500)
+    env = GridWorld(custom_grid, render=False, select_and_place=True, max_steps=1000)
     #env = FakeObsWrapper(env)
     figure_generator = RandomFigure
     env = TargetGenerator(env, fig_generator=figure_generator)

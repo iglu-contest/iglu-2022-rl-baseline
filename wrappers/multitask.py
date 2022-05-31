@@ -43,7 +43,7 @@ class TargetGenerator(gym.Wrapper):
         return super().reset()
 
 class SubtaskGenerator(gym.Wrapper):
-    def __init__(self, env,  steps_to_task=300):
+    def __init__(self, env,  steps_to_task=150):
         super().__init__(env)
         self.relief_map = None
         self.task_generatir = None
@@ -159,4 +159,6 @@ class SubtaskGenerator(gym.Wrapper):
         self.done_obs = obs['grid']
         self.steps += 1
         self.last_agent_rotation = obs['agentPos'][3:]
+        if self.steps >= self.steps_to_task:
+            done = True
         return obs, reward, done, info
