@@ -165,6 +165,7 @@ class VectorObservationWrapper(ObsWrapper):
             'inventory': gym.spaces.Box(low=0.0, high=20.0, shape=(6,)),
             'target_grid': gym.spaces.Box(low=0.0, high=6.0, shape=(9, 11, 11)),
         }
+        self.with_obs = with_obs
         if with_obs:
             obs_space['obs'] = gym.spaces.Box(low=0, high=1, shape=(self.size, self.size, 3), dtype=np.float32)
         self.observation_space = gym.spaces.Dict(obs_space)
@@ -200,7 +201,7 @@ class VectorObservationWrapper(ObsWrapper):
             'inventory': obs['inventory'],
             'target_grid': target_grid,
         }
-        if 'obs' in self.observation_space:
+        if self.with_obs:
             obs_['obs'] = obs['obs']
         return obs_
 
