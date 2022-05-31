@@ -127,7 +127,7 @@ class RandomFigure(Figure):
         count_of_blocks = len(blocks_index[0])
         print(count_of_blocks)
         print()
-        if count_of_blocks > 15:
+        if count_of_blocks > 25:
             if count_of_blocks > 40:
                 holes_count = int(count_of_blocks * 0.5)
             else:
