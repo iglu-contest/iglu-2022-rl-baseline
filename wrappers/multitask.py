@@ -43,7 +43,7 @@ class TargetGenerator(gym.Wrapper):
         return super().reset()
 
 class SubtaskGenerator(gym.Wrapper):
-    def __init__(self, env,  steps_to_task=300):
+    def __init__(self, env,  steps_to_task=200):
         super().__init__(env)
         self.relief_map = None
         self.task_generatir = None
