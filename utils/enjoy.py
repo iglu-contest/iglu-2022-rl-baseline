@@ -32,7 +32,7 @@ def make_iglu(*args, **kwargs):
     env = SubtaskGenerator(env)
     env = VectorObservationWrapper(env)
     env = Discretization(env, flat_action_space('human-level'))
-    env = JumpAfterPlace(env)
+#    env = JumpAfterPlace(env)
     env = ColorWrapper(env)
     env = RangetRewardFilledField(env)
     env = VideoLogger(env)

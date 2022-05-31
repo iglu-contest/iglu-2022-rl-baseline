@@ -88,11 +88,11 @@ class RangetRewardFilledField(RangetReward):
 
         ### Remove some blocks from grid
         z_agent, x_agent, y_agent = np.where(obs['grid'] != 0)
-        if len(x_agent) > 0:
-            new_grid = obs['grid'][:, :, :]
-            new_grid[:, :x_agent[-1] + 1, :] = 0
-            new_grid[:, :, :y_agent[-1] + 1] = 0
-            obs['grid'] = new_grid
+        # if len(x_agent) > 0:
+        #     new_grid = obs['grid'][:, :, :]
+        #     new_grid[:, :x_agent[-1] + 1, :] = 0
+        #     new_grid[:, :, :y_agent[-1] + 1] = 0
+        #     obs['grid'] = new_grid
 
         ### Reward calculation
         reward = 0

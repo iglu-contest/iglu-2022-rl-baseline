@@ -71,10 +71,13 @@ class SubtaskGenerator(gym.Wrapper):
             prebuilded = np.random.choice(rangex, p=prob)
         except:
             prebuilded = 0
+        print("FULL FIGURE")
+        print(self.env.figure.figure_parametrs['figure'].sum(axis = 0))
         figure = self.env.figure.figure_parametrs['figure'].copy()
         blocks = np.where(figure)
-        ind = np.lexsort((blocks[0], blocks[1], blocks[2]))
+        ind = np.lexsort((blocks[0], blocks[2], blocks[1]))
         Zorig, Xorig, Yorig = blocks[0][ind], blocks[1][ind], blocks[2][ind]
+        print(Zorig, Xorig, Yorig)
         Z,X,Y= (Zorig[:prebuilded]-1,
                         Xorig[:prebuilded]-5,
                          Yorig[:prebuilded]-5)
@@ -82,12 +85,13 @@ class SubtaskGenerator(gym.Wrapper):
         starting_grid = list(zip(X,Z,Y,idx))
         self.current_grid = np.zeros((9,11,11))
         self.current_grid[Z+1,X+5,Y+5] = 1
-
+        print("PREBUILDED!")
+        print(self.current_grid.sum(axis = 0))
         return starting_grid, prebuilded, (Zorig, Xorig, Yorig)
 
     def init_agent(self, task, last_block):
         X, Y = last_block[0], last_block[2]
-        Z = last_block[1] + 1
+        Z = last_block[1] + 2
         return X, Z, Y
 
     def make_new_task(self):
@@ -98,6 +102,8 @@ class SubtaskGenerator(gym.Wrapper):
                    sorted_blocks_coord[2][prebuilded:])
         remains = np.zeros_like(self.env.figure.figure_parametrs['figure'])
         remains[Z,X,Y]=1
+        print("LOST!")
+        print(remains.sum(axis = 0))
         self.env.figure.to_multitask_format(remains)
         self.env.figure.simplify()
       #  print(self.env.figure.figure_parametrs['figure'].sum(axis=0))
@@ -108,6 +114,8 @@ class SubtaskGenerator(gym.Wrapper):
         except:
             raise Exception("Subtasks are over! Relief map sum:  %d"%self.env.figure.relief.sum())
         coord, custom_grid = task
+        print("TASK")
+        print(custom_grid.sum(axis = 0))
         if prebuilded != 0:
             X, Z, Y = self.init_agent(coord, starting_grid[-1])
         else:

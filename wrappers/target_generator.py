@@ -53,19 +53,35 @@ class Figure():
             self.to_multitask_format(figure)
 
     def to_multitask_format(self, figure_witn_colors):
+        print("FIGURE")
+        print(figure_witn_colors.sum(axis = 0))
+        print()
         figure = np.zeros_like(figure_witn_colors)
         figure[figure_witn_colors > 0] = 1
-        self.figure = figure
+        self.figure = figure.copy()
         holes, _ = modify(figure)
         _, _, full_figure = self.simplify()
-        self.hole_indx = np.where((figure == 0) & (full_figure != 0))
-        figure_parametrs = {'figure': figure, 'color': figure_witn_colors}
+        full_figure[full_figure!=0] = 1
+        print("FIGURE without holes")
+        print(full_figure.sum(axis = 0))
+        print()
+        blocks = np.where((full_figure - self.figure )!=0)
+        ind = np.lexsort((blocks[0], blocks[2], blocks[1]))
+        self.hole_indx = (blocks[0][ind],blocks[1][ind],blocks[2][ind])
+        print("DIFF")
+        print((full_figure - self.figure ).sum(axis = 0))
+        print()
+        print("HOLES!")
+        print()
+        print(self.hole_indx)
+        figure_parametrs = {'figure': self.figure, 'color': figure_witn_colors}
         self.figure_parametrs = figure_parametrs
         return figure
 
     def simplify(self):
         if self.figure is not None:
-            is_modified, new_figure = modify(self.figure)
+            fig = self.figure.copy()
+            is_modified, new_figure = modify(fig)
             target, relief = figure_to_3drelief(new_figure)
             full_figure = relief.copy()
             relief = relief.max(axis=0)
@@ -98,17 +114,37 @@ class RandomFigure(Figure):
         figure = np.zeros((9, 11, 11))
         figure[fig_filter] = 1
 
-        blocks_index = np.where((figure != 0))
-        count_of_blocks = blocks_index[0].shape[0]
+        blocks_index = np.where((figure != 0)&(figure.sum(axis = 0) >= 3))
+        ind = np.lexsort((blocks_index[0], blocks_index[2], blocks_index[1]))
+        blocks_index = (blocks_index[0][ind], blocks_index[1][ind], blocks_index[2][ind])
+
+        print()
+        print("BLOCKS!!")
+        print(blocks_index)
+        print(blocks_index[0])
+        print("fig BEFOR HOLES")
+        print(figure.sum(axis = 0))
+        count_of_blocks = len(blocks_index[0])
+        print(count_of_blocks)
+        print()
         if count_of_blocks > 6:
-            holes_count = np.random.randint(0, int(count_of_blocks * 0.7))
+            holes_count = np.random.randint(2, int(count_of_blocks * 0.9))
+
             holes_indx_filter = np.random.permutation(blocks_index[0].shape[0])[:holes_count]
             holes_indx = (blocks_index[0][holes_indx_filter],
                           blocks_index[1][holes_indx_filter],
                           blocks_index[2][holes_indx_filter])
             figure[holes_indx] = 0
+            print("fig after HOLES")
+            print(figure.sum(axis=0))
         else:
             holes_indx = [[], [], []]
+
+        print("GENERATED HOLES")
+        holes_map = np.zeros((9,11,11))
+        holes_map[holes_indx] = 1
+        print(holes_map.sum(axis = 0))
+        print()
         self.hole_indx = holes_indx
         self.figure = figure
         self.simplify()
