@@ -95,7 +95,7 @@ class SubtaskGenerator(gym.Wrapper):
         return X, Z, Y
 
     def make_new_task(self):
-        size = int(self.env.figure.figure_parametrs['relief'].sum()*0.6)
+        size = int(len(np.where(self.env.figure.figure_parametrs['figure']!=0)[0])*0.6)
         starting_grid, prebuilded, sorted_blocks_coord = self.init_relief(size)
         Z, X, Y = (sorted_blocks_coord[0][prebuilded:],
                    sorted_blocks_coord[1][prebuilded:],
@@ -120,6 +120,8 @@ class SubtaskGenerator(gym.Wrapper):
                             {sorted_blocks_coord}
                             Count of prebuilds:
                             {prebuilded}
+                            Count of blocks:
+                            {size}
                             """%self.env.figure.relief.sum())
         coord, custom_grid = task
         print("TASK")
