@@ -112,7 +112,15 @@ class SubtaskGenerator(gym.Wrapper):
         try:
             task = next(self.generator)
         except:
-            raise Exception("Subtasks are over! Relief map sum:  %d"%self.env.figure.relief.sum())
+            raise Exception(f"""Subtasks are over! 
+                            Relief map sum:  %d
+                            Remains: 
+                            {remains.sum(axis = 0)} 
+                            Blocks:
+                            {sorted_blocks_coord}
+                            Count of prebuilds:
+                            {prebuilded}
+                            """%self.env.figure.relief.sum())
         coord, custom_grid = task
         print("TASK")
         print(custom_grid.sum(axis = 0))
