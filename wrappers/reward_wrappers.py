@@ -117,10 +117,10 @@ class RangetRewardFilledField(RangetReward):
             x_agent, z_agent, y_agent = obs['agentPos'][:3]
             x_agent, y_agent = x_agent + 5, y_agent + 5
             x_agent, y_agent = int(x_agent + 0.5), int(y_agent + 0.5)
-            _, x_last_block, y_last_blcok = np.where(self.env.task.target_grid != 0)
+            z_last_block, x_last_block, y_last_blcok = np.where(self.env.task.target_grid != 0)
             if reward == 1:
                 self.SR += 1
-                if x_last_block == x_agent and y_last_blcok == y_agent:
+                if x_last_block == x_agent and y_last_blcok == y_agent and (z_agent - z_last_block)<=2:
                     reward += 0.5
                 full = self.env.one_round_reset(new_blocks, do)
                 info['done'] = 'right_move'
