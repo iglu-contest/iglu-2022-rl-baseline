@@ -22,23 +22,32 @@ def target_to_subtasks(figure):
         if len(xy_holes) > 0 and x < 10 and y < 10:
             holes_in_xy = ((xy_holes - [x, y])[:, 0] == 0) & ((xy_holes - [x, y])[:, 1] == 0)
             holes_in_xy = np.where(holes_in_xy == 1)[0]
+            additional_blocks = []
             last_height = 0
             z = -1
-
             for height in zh[holes_in_xy]:
+               # raise Exception("!!!")
                 print(zh[holes_in_xy])
                 for z in range(last_height, height - 1):
                     print("z, h", z, height - 1)
                     custom_grid = np.zeros((9, 11, 11))
                     custom_grid[z, x + 1, y + 1] = 1
+                    additional_blocks.append((z, x+1, y+1))
                     yield (x - 4, z - 1, y - 4, 2), custom_grid
-
                 custom_grid = np.zeros((9, 11, 11))
-                # if z!=0:
                 z += 1
                 custom_grid[z, x, y] = -1
                 last_height = height
                 yield (x - 5, z - 1, y - 5, -2), custom_grid
+            print(additional_blocks)
+            if len(additional_blocks)>0:
+                for z,x,y in additional_blocks[::-1]:
+                    print("!! z, h", z, height - 1)
+                    custom_grid = np.zeros((9, 11, 11))
+                    custom_grid[z, x , y ] = -1
+                    yield (x - 5, z - 1, y - 5, -1), custom_grid
+
+
 
 
 class Figure():
@@ -114,38 +123,52 @@ class RandomFigure(Figure):
         figure = np.zeros((9, 11, 11))
         figure[fig_filter] = 1
 
-        blocks_index = np.where((figure != 0)&(figure.sum(axis = 0) >= 3))
-        ind = np.lexsort((blocks_index[0], blocks_index[2], blocks_index[1]))
-        blocks_index = (blocks_index[0][ind], blocks_index[1][ind], blocks_index[2][ind])
-
-        print()
-        print("BLOCKS!!")
-        print(blocks_index)
-        print(blocks_index[0])
-        print("fig BEFOR HOLES")
-        print(figure.sum(axis = 0))
-        count_of_blocks = len(blocks_index[0])
-        print(count_of_blocks)
-        print()
-        if count_of_blocks > 25:
-            if count_of_blocks > 40:
-                holes_count = int(count_of_blocks * 0.5)
-            else:
-                holes_count = np.random.randint(0, int(count_of_blocks * 0.5))
-
-            holes_indx_filter = np.random.permutation(blocks_index[0].shape[0])[:holes_count]
-            holes_indx = (blocks_index[0][holes_indx_filter],
-                          blocks_index[1][holes_indx_filter],
-                          blocks_index[2][holes_indx_filter])
-            figure[holes_indx] = 0
-            print("fig after HOLES")
-            print(figure.sum(axis=0))
-        else:
-            holes_indx = [[], [], []]
+        relief = figure.sum(axis = 0)
+        high_blocks = np.where(relief > 3)
+        holes_indx = [[],[],[]]
+        for x, y in zip(*high_blocks):
+            z = np.random.randint(1,relief[x,y]-1)
+            holes_indx[0].append(z)
+            holes_indx[1].append(x)
+            holes_indx[2].append(y)
+        holes_indx = np.asarray(holes_indx)
+        print(holes_indx.shape)
+        print(holes_indx)
+        print(figure.shape)
+        # blocks_index = np.where((figure != 0)&(figure.sum(axis = 0) >= 3))
+        # ind = np.lexsort((blocks_index[0], blocks_index[2], blocks_index[1]))
+        # blocks_index = (blocks_index[0][ind], blocks_index[1][ind], blocks_index[2][ind])
+        #
+        # print()
+        # print("BLOCKS!!")
+        # print(blocks_index)
+        # print(blocks_index[0])
+        # print("fig BEFOR HOLES")
+        # print(figure.sum(axis = 0))
+        # count_of_blocks = len(blocks_index[0])
+        # print(count_of_blocks)
+        # print()
+        # if count_of_blocks > 25:
+        #     if count_of_blocks > 40:
+        #         holes_count = int(count_of_blocks * 0.5)
+        #     else:
+        #         holes_count = np.random.randint(0, int(count_of_blocks * 0.5))
+        #
+        #     holes_indx_filter = np.random.permutation(blocks_index[0].shape[0])[:holes_count]
+        #     holes_indx = (blocks_index[0][holes_indx_filter],
+        #                   blocks_index[1][holes_indx_filter],
+        #                   blocks_index[2][holes_indx_filter])
+        if len(holes_indx[0])>0:
+            figure[holes_indx[0], holes_indx[1],holes_indx[2]] = 0
+        #     print("fig after HOLES")
+        #     print(figure.sum(axis=0))
+        # else:
+        #     holes_indx = [[], [], []]
 
         print("GENERATED HOLES")
         holes_map = np.zeros((9,11,11))
-        holes_map[holes_indx] = 1
+        if len(holes_indx[0]) > 0:
+            holes_map[holes_indx[0], holes_indx[1],holes_indx[2]] = 1
         print(holes_map.sum(axis = 0))
         print()
         self.hole_indx = holes_indx
