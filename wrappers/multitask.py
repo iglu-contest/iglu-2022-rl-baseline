@@ -51,7 +51,7 @@ class SubtaskGenerator(gym.Wrapper):
         self.old_grid = np.zeros((9, 11, 11))
         self.preinited_grid = None
         self.old_preinited_grid = None
-        self.prebuilds_percent = 0.7
+        self.prebuilds_percent = 0.5
         self.last_agent_rotation = (0, 0)
         self.last_target = None
         self.color_map = None

@@ -124,10 +124,10 @@ class RandomFigure(Figure):
         figure[fig_filter] = 1
 
         relief = figure.sum(axis = 0)
-        high_blocks = np.where(relief > 3)
+        high_blocks = np.where(relief > 1)
         holes_indx = [[],[],[]]
         for x, y in zip(*high_blocks):
-            z = np.random.randint(1,relief[x,y]-1)
+            z = np.random.randint(0,relief[x,y]-1)
             holes_indx[0].append(z)
             holes_indx[1].append(x)
             holes_indx[2].append(y)
