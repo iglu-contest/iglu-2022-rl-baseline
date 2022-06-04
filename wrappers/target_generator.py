@@ -27,9 +27,9 @@ def target_to_subtasks(figure):
             z = -1
             for height in zh[holes_in_xy]:
                # raise Exception("!!!")
-                print(zh[holes_in_xy])
+          #      print(zh[holes_in_xy])
                 for z in range(last_height, height - 1):
-                    print("z, h", z, height - 1)
+                #    print("z, h", z, height - 1)
                     custom_grid = np.zeros((9, 11, 11))
                     custom_grid[z, x + 1, y + 1] = 1
                     additional_blocks.append((z, x+1, y+1))
@@ -39,16 +39,23 @@ def target_to_subtasks(figure):
                 custom_grid[z, x, y] = -1
                 last_height = height
                 yield (x - 5, z - 1, y - 5, -2), custom_grid
-            print(additional_blocks)
+          #  print(additional_blocks)
             if len(additional_blocks)>0:
                 for z,x,y in additional_blocks[::-1]:
-                    print("!! z, h", z, height - 1)
+                #    print("!! z, h", z, height - 1)
                     custom_grid = np.zeros((9, 11, 11))
                     custom_grid[z, x , y ] = -1
                     yield (x - 5, z - 1, y - 5, -1), custom_grid
 
 
-
+def generate_preobs(min_value, max_value, red_degree = 5):
+    choice_range = list(range(min_value,int(max_value)))
+    p = 1/len(choice_range)
+    p_for_bottom_block = p/red_degree
+    addition_p = (p-p_for_bottom_block)/(len(choice_range)-1)
+    p += addition_p
+    probs = [p_for_bottom_block]+[p]*(len(choice_range)-1)
+    return choice_range, probs
 
 class Figure():
     def __init__(self, figure=None):
@@ -62,26 +69,26 @@ class Figure():
             self.to_multitask_format(figure)
 
     def to_multitask_format(self, figure_witn_colors):
-        print("FIGURE")
-        print(figure_witn_colors.sum(axis = 0))
-        print()
+        # print("FIGURE")
+        # print(figure_witn_colors.sum(axis = 0))
+        # print()
         figure = np.zeros_like(figure_witn_colors)
         figure[figure_witn_colors > 0] = 1
         self.figure = figure.copy()
         holes, _ = modify(figure)
         _, _, full_figure = self.simplify()
         full_figure[full_figure!=0] = 1
-        print("FIGURE without holes")
-        print(full_figure.sum(axis = 0))
-        print()
+        # print("FIGURE without holes")
+        # print(full_figure.sum(axis = 0))
+        # print()
         blocks = np.where((full_figure - self.figure )!=0)
         ind = np.lexsort((blocks[0], blocks[2], blocks[1]))
         self.hole_indx = (blocks[0][ind],blocks[1][ind],blocks[2][ind])
-        print("DIFF")
-        print((full_figure - self.figure ).sum(axis = 0))
-        print()
+      #  print("DIFF")
+     #   print((full_figure - self.figure ).sum(axis = 0))
+    #    print()
         print("HOLES!")
-        print()
+     #   print()
         print(self.hole_indx)
         figure_parametrs = {'figure': self.figure, 'color': figure_witn_colors}
         self.figure_parametrs = figure_parametrs
@@ -112,7 +119,10 @@ class RandomFigure(Figure):
 
     def make_task(self):
         plane = np.zeros((11, 11))
-        relief = np.random.randint(1, np.random.randint(*self.figures_height_range),
+        choices, probs = generate_preobs(*self.figures_height_range)
+        print(choices, probs)
+        max_heigt = np.random.choice(choices, p = probs)
+        relief = np.random.randint(1, max_heigt,
                                    size=(11, 11))
         x, y = np.random.randint(0, 11, size=2)
         relief_mask = random_relief_map(center=(x, y), std=np.random.randint(*self.std_range) / 100,
@@ -126,51 +136,39 @@ class RandomFigure(Figure):
         relief = figure.sum(axis = 0)
         high_blocks = np.where(relief > 1)
         holes_indx = [[],[],[]]
+
         for x, y in zip(*high_blocks):
-            z = np.random.randint(0,relief[x,y]-1)
-            holes_indx[0].append(z)
-            holes_indx[1].append(x)
-            holes_indx[2].append(y)
+            if relief[x,y] >= 3:
+                count = np.random.randint(1,relief[x,y]-1)
+            else:
+                count = 0
+            for i in range(count):
+                choice_range = list(range(0,int(relief[x,y]-1)))
+                p = 1/len(choice_range)
+                p_for_bottom_block = p/4
+                addition_p = (p-p_for_bottom_block)/(len(choice_range)-1)
+                p += addition_p
+                probs = [p_for_bottom_block]+[p]*(len(choice_range)-1)
+                #print(probs)
+                z = np.random.choice(choice_range, p = probs)
+                holes_indx[0].append(z)
+                holes_indx[1].append(x)
+                holes_indx[2].append(y)
         holes_indx = np.asarray(holes_indx)
-        print(holes_indx.shape)
-        print(holes_indx)
-        print(figure.shape)
-        # blocks_index = np.where((figure != 0)&(figure.sum(axis = 0) >= 3))
-        # ind = np.lexsort((blocks_index[0], blocks_index[2], blocks_index[1]))
-        # blocks_index = (blocks_index[0][ind], blocks_index[1][ind], blocks_index[2][ind])
-        #
-        # print()
-        # print("BLOCKS!!")
-        # print(blocks_index)
-        # print(blocks_index[0])
-        # print("fig BEFOR HOLES")
-        # print(figure.sum(axis = 0))
-        # count_of_blocks = len(blocks_index[0])
-        # print(count_of_blocks)
-        # print()
-        # if count_of_blocks > 25:
-        #     if count_of_blocks > 40:
-        #         holes_count = int(count_of_blocks * 0.5)
-        #     else:
-        #         holes_count = np.random.randint(0, int(count_of_blocks * 0.5))
-        #
-        #     holes_indx_filter = np.random.permutation(blocks_index[0].shape[0])[:holes_count]
-        #     holes_indx = (blocks_index[0][holes_indx_filter],
-        #                   blocks_index[1][holes_indx_filter],
-        #                   blocks_index[2][holes_indx_filter])
+        holes_indx[0]+=1
+        print("count of holes: ", holes_indx[0])
+
+    #    print(holes_indx)
+   #     print(figure.shape)
+
         if len(holes_indx[0])>0:
             figure[holes_indx[0], holes_indx[1],holes_indx[2]] = 0
-        #     print("fig after HOLES")
-        #     print(figure.sum(axis=0))
-        # else:
-        #     holes_indx = [[], [], []]
-
-        print("GENERATED HOLES")
+    #    print("GENERATED HOLES")
         holes_map = np.zeros((9,11,11))
         if len(holes_indx[0]) > 0:
             holes_map[holes_indx[0], holes_indx[1],holes_indx[2]] = 1
-        print(holes_map.sum(axis = 0))
-        print()
+    #    print(holes_map.sum(axis = 0))
+      #  print()
         self.hole_indx = holes_indx
         self.figure = figure
         self.simplify()
