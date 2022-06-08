@@ -9,6 +9,7 @@ def target_to_subtasks(figure):
     targets_plane = figure.relief.astype(int)
     color_plane = None  # figure.figure_parametrs['color']
     X, Y = np.where(figure.relief != 0)
+    addtional_tower_remote = (2,2)
     for x, y in zip(X, Y):
         for z in range(targets_plane[x, y]):
             custom_grid = np.zeros((9, 11, 11))
@@ -19,7 +20,7 @@ def target_to_subtasks(figure):
                 custom_grid[z, x, y] = int(color_plane[z, x, y])
                 yield (x - 5, z - 1, y - 5, int(color_plane[z, x, y])), custom_grid
 
-        if len(xy_holes) > 0 and x < 10 and y < 10:
+        if len(xy_holes) > 0 and x < (11 - addtional_tower_remote[0]) and y < (11 - addtional_tower_remote[1]):
             holes_in_xy = ((xy_holes - [x, y])[:, 0] == 0) & ((xy_holes - [x, y])[:, 1] == 0)
             holes_in_xy = np.where(holes_in_xy == 1)[0]
             additional_blocks = []
@@ -31,9 +32,9 @@ def target_to_subtasks(figure):
                 for z in range(last_height, height - 1):
                 #    print("z, h", z, height - 1)
                     custom_grid = np.zeros((9, 11, 11))
-                    custom_grid[z, x + 1, y + 1] = 1
-                    additional_blocks.append((z, x+1, y+1))
-                    yield (x - 4, z - 1, y - 4, 2), custom_grid
+                    custom_grid[z, x + addtional_tower_remote[0], y + addtional_tower_remote[1]] = 1
+                    additional_blocks.append((z, x+addtional_tower_remote[0], y+addtional_tower_remote[1]))
+                    yield (x - 5 + addtional_tower_remote[0], z - 1, y - 5 + addtional_tower_remote[1], 2), custom_grid
                 custom_grid = np.zeros((9, 11, 11))
                 z += 1
                 custom_grid[z, x, y] = -1
