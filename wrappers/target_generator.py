@@ -34,12 +34,12 @@ def target_to_subtasks(figure):
                     custom_grid = np.zeros((9, 11, 11))
                     custom_grid[z, x + addtional_tower_remote[0], y + addtional_tower_remote[1]] = 1
                     additional_blocks.append((z, x+addtional_tower_remote[0], y+addtional_tower_remote[1]))
-                    yield (x - 5 + addtional_tower_remote[0], z - 1, y - 5 + addtional_tower_remote[1], 2), custom_grid
+                    yield (x - 5 + addtional_tower_remote[0], z - 1, y - 5 + addtional_tower_remote[1], 1), custom_grid
                 custom_grid = np.zeros((9, 11, 11))
                 z += 1
                 custom_grid[z, x, y] = -1
                 last_height = height
-                yield (x - 5, z - 1, y - 5, -2), custom_grid
+                yield (x - 5, z - 1, y - 5, -1), custom_grid
           #  print(additional_blocks)
             if len(additional_blocks)>0:
                 for z,x,y in additional_blocks[::-1]:

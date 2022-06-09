@@ -10,12 +10,7 @@ def strict_reward_range():
     return reward_range + for_long_distance
 
 def remove_reward_range():
-    print()
-    print()
-    print("Dont't worry!")
-    print()
-    print()
-    reward_range = [1, -0.001, -0.005,  -0.01, -0.02, -0.03, -0.04, -0.05, -0.06, -0.07, -0.08,
+    reward_range = [1, 0.0001, 0.00, 0.00, -0.0001, -0.001, -0.01, -0.02, -0.03, -0.04, -0.05, -0.06, -0.07, -0.08,
                     -0.09]
     for_long_distance = [-0.10 - 0.01 * i for i in range(50)]
     return reward_range + for_long_distance
