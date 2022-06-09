@@ -31,6 +31,8 @@ class RangetReward(Wrapper):
         try:
             if remove:
                 reward = remove_reward_range_[int(dist)]
+                if reward == 1:
+                    raise Exception(np.where(self.env.task.target_grid!=0))
                 print("]]]]]]]]]]]]]]]]]]]]]]]]")
                 print(reward)
                 print("]]]]]]]]]]]]]]]]]]]]]]]]")
