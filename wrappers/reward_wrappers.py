@@ -33,8 +33,8 @@ class RangetReward(Wrapper):
                 print("]]]]]]]]]]]]]]]]]]]]]]]]")
             else:
                 reward = reward_range[int(dist)]
-        except:
-            raise Exception("Distance to big! %.3f" % dist)
+        except Exception as e:
+            raise Exception(e)
         return reward
 
     def blocks_count(self, info):
