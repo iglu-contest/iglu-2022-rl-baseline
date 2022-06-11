@@ -142,7 +142,7 @@ class RangetRewardFilledField(RangetReward):
                     info['done'] = 'full'
                     done = True
 
-            if reward < 1 and reward != 0:
+            if reward < 1:
                 info['done'] = 'mistake_%s' % self.steps
                 done = True
                 self.env.update_field(new_blocks, do)
@@ -152,7 +152,7 @@ class RangetRewardFilledField(RangetReward):
         self.last_grid = obs['grid']
         self.fs = False
         self.info = info
-
+        print(done)
         return obs, reward, done, info
 
 

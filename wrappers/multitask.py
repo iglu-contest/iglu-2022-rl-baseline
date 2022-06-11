@@ -71,23 +71,48 @@ class SubtaskGenerator(gym.Wrapper):
             prebuilded = np.random.choice(rangex, p=prob)
         except:
             prebuilded = 0
-        print("FULL FIGURE")
-        print(self.env.figure.figure_parametrs['figure'].sum(axis = 0))
-        figure = self.env.figure.figure_parametrs['figure'].copy()
-        blocks = np.where(figure)
+
+        starting_grid = []
+        self.current_grid = np.zeros((9, 11, 11))
+        for i in range(prebuilded):
+            coord, custom_grid = next(self.generator)
+          #  starting_grid.append((coord))
+            x,z,y,id = coord
+
+            id = id/abs(id)
+            print(x, z+1, y, id)
+            self.current_grid[z+1, x+5, y+5] += id
+
+        self.current_grid[self.current_grid < 0] = 0
+        self.current_grid[self.current_grid > 0] = 1
+
+        blocks = np.where(self.current_grid)
         ind = np.lexsort((blocks[0], blocks[2], blocks[1]))
-        Zorig, Xorig, Yorig = blocks[0][ind], blocks[1][ind], blocks[2][ind]
-        print(Zorig, Xorig, Yorig)
-        Z,X,Y= (Zorig[:prebuilded]-1,
-                        Xorig[:prebuilded]-5,
-                         Yorig[:prebuilded]-5)
-        idx = np.ones_like(X)
-        starting_grid = list(zip(X,Z,Y,idx))
-        self.current_grid = np.zeros((9,11,11))
-        self.current_grid[Z+1,X+5,Y+5] = 1
-        print("PREBUILDED!")
-        print(self.current_grid.sum(axis = 0))
-        return starting_grid, prebuilded, (Zorig, Xorig, Yorig)
+        Zorig, Xorig, Yorig = blocks[0][ind]-1, blocks[1][ind]-5, blocks[2][ind]-5
+        ids = [1]* len(Zorig)
+        starting_grid = list(zip(Xorig, Zorig, Yorig, ids))
+        print("NEW!")
+
+      # if np.sum()>1:
+         #  raise Exception("Wrong current grid calculation")
+
+      #  print("FULL FIGURE")
+    #    print(self.env.figure.figure_parametrs['figure'].sum(axis = 0))
+    #     figure = self.env.figure.figure_parametrs['figure'].copy()
+    #     blocks = np.where(figure)
+    #     ind = np.lexsort((blocks[0], blocks[2], blocks[1]))
+    #     Zorig, Xorig, Yorig = blocks[0][ind], blocks[1][ind], blocks[2][ind]
+    #  #   print(Zorig, Xorig, Yorig)
+    #     Z,X,Y= (Zorig[:prebuilded]-1,
+    #                     Xorig[:prebuilded]-5,
+    #                      Yorig[:prebuilded]-5)
+    #     idx = np.ones_like(X)
+    #     starting_grid = list(zip(X,Z,Y,idx))
+    #     self.current_grid = np.zeros((9,11,11))
+    #     self.current_grid[Z+1,X+5,Y+5] = 1
+   #     print("PREBUILDED!")
+     #   print(self.current_grid.sum(axis = 0))
+        return starting_grid, prebuilded
 
     def init_agent(self, task, last_block):
         X, Y = last_block[0], last_block[2]
@@ -95,37 +120,35 @@ class SubtaskGenerator(gym.Wrapper):
         return X, Z, Y
 
     def make_new_task(self):
-        size = int(len(np.where(self.env.figure.figure_parametrs['figure']!=0)[0])*0.6)
-        starting_grid, prebuilded, sorted_blocks_coord = self.init_relief(size)
-        Z, X, Y = (sorted_blocks_coord[0][prebuilded:],
-                   sorted_blocks_coord[1][prebuilded:],
-                   sorted_blocks_coord[2][prebuilded:])
-        remains = np.zeros_like(self.env.figure.figure_parametrs['figure'])
-        remains[Z,X,Y]=1
-        print("LOST!")
-        print(remains.sum(axis = 0))
-        self.env.figure.to_multitask_format(remains)
-        self.env.figure.simplify()
+    #    size = int(len(np.where(self.env.figure.figure_parametrs['figure']!=0)[0])*0.6)
+     #   starting_grid, prebuilded, sorted_blocks_coord = self.init_relief(size)
+     #   Z, X, Y = (sorted_blocks_coord[0][prebuilded:],
+      #             sorted_blocks_coord[1][prebuilded:],
+      #             sorted_blocks_coord[2][prebuilded:])
+      #  remains = np.zeros_like(self.env.figure.figure_parametrs['figure'])
+    #    remains[Z,X,Y]=1
+     #   print("LOST!")
+     #   print(remains.sum(axis = 0))
+      #  self.env.figure.to_multitask_format(remains)
+       # self.env.figure.simplify()
       #  print(self.env.figure.figure_parametrs['figure'].sum(axis=0))
         self.generator = target_to_subtasks(self.env.figure)
 
+        size = int(len(np.where(self.env.figure.figure_parametrs['figure'] != 0)[0]) * 0.6)
+        starting_grid, prebuilded = self.init_relief(size)
+        print(starting_grid)
         try:
             task = next(self.generator)
         except:
             raise Exception(f"""Subtasks are over! 
-                            Relief map sum:  %d
-                            Remains: 
-                            {remains.sum(axis = 0)} 
-                            Blocks:
-                            {sorted_blocks_coord}
                             Count of prebuilds:
                             {prebuilded}
                             Count of blocks:
                             {size}
                             """%self.env.figure.relief.sum())
         coord, custom_grid = task
-        print("TASK")
-        print(custom_grid.sum(axis = 0))
+     #   print("TASK")
+      #  print(custom_grid.sum(axis = 0))
         if prebuilded != 0:
             X, Z, Y = self.init_agent(coord, starting_grid[-1])
         else:
