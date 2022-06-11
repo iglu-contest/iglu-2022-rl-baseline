@@ -113,7 +113,7 @@ class Figure():
 class RandomFigure(Figure):
     def __init__(self, cnf=None, color=1):
         super().__init__()
-        self.figures_height_range = (3, 9) if cnf is None else cnf['figures_height_range']
+        self.figures_height_range = (3, 8) if cnf is None else cnf['figures_height_range']
         self.std_range = (95, 160) if cnf is None else cnf['std_range']
         self.figures_count_range = (15, 30) if cnf is None else cnf['figures_count_range']
         self.color = color
