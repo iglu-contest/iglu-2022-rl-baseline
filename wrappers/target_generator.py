@@ -29,12 +29,12 @@ def target_to_subtasks(figure):
             for height in zh[holes_in_xy]:
                # raise Exception("!!!")
           #      print(zh[holes_in_xy])
-          #       for z in range(last_height, height - 1):
-          #       #    print("z, h", z, height - 1)
-          #           custom_grid = np.zeros((9, 11, 11))
-          #           custom_grid[z, x + addtional_tower_remote[0], y + addtional_tower_remote[1]] = 1
-          #           additional_blocks.append((z, x+addtional_tower_remote[0], y+addtional_tower_remote[1]))
-          #           yield (x - 5 + addtional_tower_remote[0], z - 1, y - 5 + addtional_tower_remote[1], 1), custom_grid
+                for z in range(last_height, height - 1):
+                #    print("z, h", z, height - 1)
+                    custom_grid = np.zeros((9, 11, 11))
+                    custom_grid[z, x + addtional_tower_remote[0], y + addtional_tower_remote[1]] = 1
+                    additional_blocks.append((z, x+addtional_tower_remote[0], y+addtional_tower_remote[1]))
+                    yield (x - 5 + addtional_tower_remote[0], z - 1, y - 5 + addtional_tower_remote[1], 1), custom_grid
                 custom_grid = np.zeros((9, 11, 11))
 
                 custom_grid[height, x, y] = -1
