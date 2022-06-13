@@ -41,12 +41,12 @@ def target_to_subtasks(figure):
                 last_height = height
                 yield (x - 5, height - 1, y - 5, -1), custom_grid
           #  print(additional_blocks)
-          #   if len(additional_blocks)>0:
-          #       for z,x,y in additional_blocks[::-1]:
-          #       #    print("!! z, h", z, height - 1)
-          #           custom_grid = np.zeros((9, 11, 11))
-          #           custom_grid[z, x , y ] = -1
-          #           yield (x - 5, z - 1, y - 5, -1), custom_grid
+            if len(additional_blocks)>0:
+                for z,x,y in additional_blocks[::-1]:
+                #    print("!! z, h", z, height - 1)
+                    custom_grid = np.zeros((9, 11, 11))
+                    custom_grid[z, x , y ] = -1
+                    yield (x - 5, z - 1, y - 5, -1), custom_grid
 
 
 def generate_preobs(min_value, max_value, red_degree = 5):
