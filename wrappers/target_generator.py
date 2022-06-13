@@ -25,28 +25,28 @@ def target_to_subtasks(figure):
             holes_in_xy = np.where(holes_in_xy == 1)[0]
             additional_blocks = []
             last_height = 0
-            z = -1
+            z = 0
             for height in zh[holes_in_xy]:
                # raise Exception("!!!")
           #      print(zh[holes_in_xy])
-                for z in range(last_height, height - 1):
-                #    print("z, h", z, height - 1)
-                    custom_grid = np.zeros((9, 11, 11))
-                    custom_grid[z, x + addtional_tower_remote[0], y + addtional_tower_remote[1]] = 1
-                    additional_blocks.append((z, x+addtional_tower_remote[0], y+addtional_tower_remote[1]))
-                    yield (x - 5 + addtional_tower_remote[0], z - 1, y - 5 + addtional_tower_remote[1], 1), custom_grid
+          #       for z in range(last_height, height - 1):
+          #       #    print("z, h", z, height - 1)
+          #           custom_grid = np.zeros((9, 11, 11))
+          #           custom_grid[z, x + addtional_tower_remote[0], y + addtional_tower_remote[1]] = 1
+          #           additional_blocks.append((z, x+addtional_tower_remote[0], y+addtional_tower_remote[1]))
+          #           yield (x - 5 + addtional_tower_remote[0], z - 1, y - 5 + addtional_tower_remote[1], 1), custom_grid
                 custom_grid = np.zeros((9, 11, 11))
-                z += 1
-                custom_grid[z, x, y] = -1
+
+                custom_grid[height, x, y] = -1
                 last_height = height
-                yield (x - 5, z - 1, y - 5, -1), custom_grid
+                yield (x - 5, height - 1, y - 5, -1), custom_grid
           #  print(additional_blocks)
-            if len(additional_blocks)>0:
-                for z,x,y in additional_blocks[::-1]:
-                #    print("!! z, h", z, height - 1)
-                    custom_grid = np.zeros((9, 11, 11))
-                    custom_grid[z, x , y ] = -1
-                    yield (x - 5, z - 1, y - 5, -1), custom_grid
+          #   if len(additional_blocks)>0:
+          #       for z,x,y in additional_blocks[::-1]:
+          #       #    print("!! z, h", z, height - 1)
+          #           custom_grid = np.zeros((9, 11, 11))
+          #           custom_grid[z, x , y ] = -1
+          #           yield (x - 5, z - 1, y - 5, -1), custom_grid
 
 
 def generate_preobs(min_value, max_value, red_degree = 5):
@@ -140,7 +140,10 @@ class RandomFigure(Figure):
 
         for x, y in zip(*high_blocks):
             if relief[x,y] >= 3:
-                count = np.random.randint(1,relief[x,y]-1)
+                if  relief[x,y] == 3:
+                    count = np.random.randint(1,relief[x,y]-1)
+                else:
+                    count = np.random.randint(1, relief[x, y] - 2)
             else:
                 count = 0
             for i in range(count):
@@ -151,6 +154,7 @@ class RandomFigure(Figure):
                 p += addition_p
                 probs = [p_for_bottom_block]+[p]*(len(choice_range)-1)
                 #print(probs)
+
                 z = np.random.choice(choice_range, p = probs)
                 holes_indx[0].append(z)
                 holes_indx[1].append(x)
