@@ -139,73 +139,56 @@ class RandomFigure(Figure):
         high_blocks = np.where(relief > 1)
         holes_indx = [[],[],[]]
         count = 0
-        for x, y in zip(*high_blocks):
-            if relief[x,y] >= 3:
-                if  relief[x,y] == 3:
-                    count = np.random.randint(1,relief[x,y]-1)
-                else:
-                    count = np.random.randint(2, relief[x, y] - 1)
-            else:
-                count = 0
-            orig_choice_range = list(range(0, int(relief[x, y])))
-            choice_range = orig_choice_range.copy()
+        # for x, y in zip(*high_blocks):
+        #     if relief[x,y] >= 3:
+        #         if  relief[x,y] == 3:
+        #             count = np.random.randint(1,relief[x,y]-1)
+        #         else:
+        #             count = np.random.randint(2, relief[x, y] - 1)
+        #     else:
+        #         count = 0
+        #     orig_choice_range = list(range(0, int(relief[x, y])))
+        #     choice_range = orig_choice_range.copy()
+        #
+        #     p = [5]
+        #     P = 100-p[0]
+        #     print("full range", choice_range)
+        #     for i in range(1, len(orig_choice_range)-1):
+        #         p_ = np.random.randint(0,P)
+        #         P-=p_
+        #         p.append(p_)
+        #     p.append(P)
+        #     p = np.asarray(p)/100
+        #     print(p)
+        #     print(choice_range)
+        #     holes = []
+        #     for i in range(count):
+        #         choice = np.random.choice(choice_range, p = p)
+        #         index = choice_range.index(choice)
+        #         print(" p was", p)
+        #         if index!=(len(p)-2):
+        #             p[-2] += p[index]
+        #         else:
+        #             p[1] += p[index]
+        #         p[index] = 0
+        #         print(" p become", p)
+        #         holes.append(choice)
+        #     print(holes)
+        #
+        #     choice_range = list(set(holes))
+        #     print("generated holes")
+        #     print(choice_range)
+        #     holes_indx[0]  += sorted(choice_range)
+        #
+        #     holes_indx[1] += [x]*len(choice_range)
+        #     holes_indx[2] += [y]*len(choice_range)
+        #     print("hi", holes_indx)
+        #
+        # holes_indx = np.asarray(holes_indx)
+        # holes_indx[0]+=1
 
-            p = [5]
-            P = 100-p[0]
-            print("full range", choice_range)
-            for i in range(1, len(orig_choice_range)-1):
-                p_ = np.random.randint(0,P)
-                P-=p_
-                p.append(p_)
-            p.append(P)
-            p = np.asarray(p)/100
-            print(p)
-            print(choice_range)
-            holes = []
-            for i in range(count):
-                choice = np.random.choice(choice_range, p = p)
-                index = choice_range.index(choice)
-                print(" p was", p)
-                if index!=(len(p)-2):
-                    p[-2] += p[index]
-                else:
-                    p[1] += p[index]
-                p[index] = 0
-                print(" p become", p)
-                holes.append(choice)
-            print(holes)
-            #np.random.shuffle(choice_range)
-
-            #choice_range = choice_range[: count+3]
-           # choice_range = []
-       #     print("original choice range", orig_choice_range)
-        #    print("smth ",orig_choice_range[-len(orig_choice_range)//4:])
-         #   print("cr", choice_range)
-            choice_range = list(set(holes))
-            print("generated holes")
-            print(choice_range)
-            holes_indx[0]  += sorted(choice_range)
-
-            holes_indx[1] += [x]*len(choice_range)
-            holes_indx[2] += [y]*len(choice_range)
-            print("hi", holes_indx)
-          # #  for i in range(count):
-          #       choice_range = list(range(0,int(relief[x,y]-1)))
-          #       np.random.shuffle(choice_range)
-          #       p = 1/len(choice_range)
-          #       p_for_bottom_block = p/4
-          #       addition_p = (p-p_for_bottom_block)/(len(choice_range)-1)
-          #       p += addition_p
-          #       probs = [p_for_bottom_block]+[p]*(len(choice_range)-1)
-          #       #print(probs)
-          #
-          #       z = np.random.choice(choice_range, p = probs)
-
-        holes_indx = np.asarray(holes_indx)
-        holes_indx[0]+=1
-
-        if count == 0:
-            holes_indx = [[],[],[]]
+        # if count == 0:
+        holes_indx = [[],[],[]]
         print("count of holes: ", holes_indx[0])
 
     #    print(holes_indx)
