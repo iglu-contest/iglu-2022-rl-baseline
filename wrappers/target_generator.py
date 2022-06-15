@@ -139,16 +139,16 @@ class RandomFigure(Figure):
         high_blocks = np.where(relief > 1)
         holes_indx = [[],[],[]]
         count = 0
-        # for x, y in zip(*high_blocks):
-        #     if relief[x,y] >= 3:
-        #         if  relief[x,y] == 3:
-        #             count = np.random.randint(1,relief[x,y]-1)
-        #         else:
-        #             count = np.random.randint(2, relief[x, y] - 1)
-        #     else:
-        #         count = 0
-        #     orig_choice_range = list(range(0, int(relief[x, y])))
-        #     choice_range = orig_choice_range.copy()
+        for x, y in zip(*high_blocks):
+            if relief[x,y] >= 3:
+                if  relief[x,y] == 3:
+                    count = np.random.randint(1,relief[x,y]-1)
+                else:
+                    count = np.random.randint(2, relief[x, y] - 1)
+            else:
+                count = 0
+            orig_choice_range = list(range(0, int(relief[x, y])))
+            choice_range = orig_choice_range.copy()
         #
         #     p = [5]
         #     P = 100-p[0]
