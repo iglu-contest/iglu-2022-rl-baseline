@@ -11,14 +11,14 @@ def target_to_subtasks(figure):
     X, Y = np.where(figure.relief != 0)
     addtional_tower_remote = (2,2)
     for x, y in zip(X, Y):
-        for z in range(targets_plane[x, y]):
+        for z in range(targets_plane[x, y]+3):
             custom_grid = np.zeros((9, 11, 11))
             if (color_plane is None) or (color_plane[z, x, y] == 0):
                 custom_grid[z, x, y] = 1
-                yield (x - 5, z - 1, y - 5, 1), custom_grid
+                yield (x - 5, z -1, y - 5, 1), custom_grid
             else:
                 custom_grid[z, x, y] = int(color_plane[z, x, y])
-                yield (x - 5, z - 1, y - 5, int(color_plane[z, x, y])), custom_grid
+                yield (x - 5, z -1, y - 5, int(color_plane[z, x, y])), custom_grid
 
         if len(xy_holes) > 0 and x < (11 - addtional_tower_remote[0]) and y < (11 - addtional_tower_remote[1]):
             holes_in_xy = ((xy_holes - [x, y])[:, 0] == 0) & ((xy_holes - [x, y])[:, 1] == 0)
@@ -28,8 +28,9 @@ def target_to_subtasks(figure):
             z = 0
             for height in zh[holes_in_xy]:
                # raise Exception("!!!")
-          #      print(zh[holes_in_xy])
-                for z in range(last_height, height - 1):
+                print("HOLES in XY")
+                print(zh[holes_in_xy])
+                for z in range(last_height, height ):
                 #    print("z, h", z, height - 1)
                     custom_grid = np.zeros((9, 11, 11))
                     custom_grid[z, x + addtional_tower_remote[0], y + addtional_tower_remote[1]] = 1
@@ -37,9 +38,9 @@ def target_to_subtasks(figure):
                     yield (x - 5 + addtional_tower_remote[0], z - 1, y - 5 + addtional_tower_remote[1], 1), custom_grid
                 custom_grid = np.zeros((9, 11, 11))
 
-                custom_grid[height-1, x, y] = -1
+                custom_grid[height, x, y] = -1
                 last_height = height
-                yield (x - 5, height - 2, y - 5, -1), custom_grid
+                yield (x - 5, height - 1, y - 5, -1), custom_grid
           #  print(additional_blocks)
             if len(additional_blocks)>0:
                 for z,x,y in additional_blocks[::-1]:
@@ -143,24 +144,43 @@ class RandomFigure(Figure):
                 if  relief[x,y] == 3:
                     count = np.random.randint(1,relief[x,y]-1)
                 else:
-                    count = np.random.randint(1, relief[x, y] - 2)
+                    count = np.random.randint(2, relief[x, y] - 1)
             else:
                 count = 0
-            for i in range(count):
-                choice_range = list(range(0,int(relief[x,y]-1)))
-                p = 1/len(choice_range)
-                p_for_bottom_block = p/4
-                addition_p = (p-p_for_bottom_block)/(len(choice_range)-1)
-                p += addition_p
-                probs = [p_for_bottom_block]+[p]*(len(choice_range)-1)
-                #print(probs)
+            orig_choice_range = list(range(0, int(relief[x, y])))
+            choice_range = orig_choice_range.copy()
+            for i in range(1, len(orig_choice_range)):
+                choice_range += [orig_choice_range[i]] * (np.random.randint((i+1)*10, 100) )
+            choice_range += [0]
+            np.random.shuffle(choice_range)
 
-                z = np.random.choice(choice_range, p = probs)
-                holes_indx[0].append(z)
-                holes_indx[1].append(x)
-                holes_indx[2].append(y)
+            choice_range = choice_range[: count+3]
+            print("original choice range", orig_choice_range)
+            print("smth ",orig_choice_range[-len(orig_choice_range)//4:])
+            print("cr", choice_range)
+            choice_range = list(set(choice_range))
+            holes_indx[0]  += sorted(choice_range)
+
+            holes_indx[1] += [x]*len(choice_range)
+            holes_indx[2] += [y]*len(choice_range)
+            print("hi", holes_indx)
+          # #  for i in range(count):
+          #       choice_range = list(range(0,int(relief[x,y]-1)))
+          #       np.random.shuffle(choice_range)
+          #       p = 1/len(choice_range)
+          #       p_for_bottom_block = p/4
+          #       addition_p = (p-p_for_bottom_block)/(len(choice_range)-1)
+          #       p += addition_p
+          #       probs = [p_for_bottom_block]+[p]*(len(choice_range)-1)
+          #       #print(probs)
+          #
+          #       z = np.random.choice(choice_range, p = probs)
+
         holes_indx = np.asarray(holes_indx)
         holes_indx[0]+=1
+
+        if count == 0:
+            holes_indx = [[],[],[]]
         print("count of holes: ", holes_indx[0])
 
     #    print(holes_indx)

@@ -137,7 +137,20 @@ class RangetRewardFilledField(RangetReward):
                 if x_last_block == x_agent and y_last_blcok == y_agent and (z_agent - z_last_block)<=2:
                     reward += 0.5
                 if task<0:
-                    if int(x_last_block-x_agent)>=1.5 and int(y_last_blcok-y_agent)>=1.5 and z_agent>1:
+                    print()
+                    print()
+                    print()
+                    print("+++++++++++++++++++++++++++++++++")
+                    print(int(x_last_block-x_agent))
+                    print(int(y_last_blcok-y_agent))
+                    print(z_agent)
+                    print(z_last_block)
+                    print("+++++++++++++++++++++++++++++++++")
+                    print()
+                    print()
+                    print()
+                    if int(x_last_block-x_agent)>=0 and int(y_last_blcok-y_agent)>=0 and z_agent>=z_last_block:
+                   #     raise Exception("WRONG!")
                         reward += 0.5
                 full = self.env.one_round_reset(new_blocks, do)
                 info['done'] = 'right_move'
