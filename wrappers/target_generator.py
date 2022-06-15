@@ -219,7 +219,7 @@ class RandomFigure(Figure):
             holes_map[holes_indx[0], holes_indx[1],holes_indx[2]] = 1
     #    print(holes_map.sum(axis = 0))
       #  print()
-        self.hole_indx = holes_indx
+        self.hole_indx = holes_indx.copy()
         self.figure = figure
         self.simplify()
         self.figure_parametrs = {'figure': figure, 'color': figure * self.color, 'relief': self.relief}
