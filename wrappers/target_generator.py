@@ -28,7 +28,7 @@ def target_to_subtasks(figure):
             z = 0
             for height in zh[holes_in_xy]:
                # raise Exception("!!!")
-                print("HOLES in XY")
+                print("HOLES in XY", x, y)
                 print(zh[holes_in_xy])
                 for z in range(last_height, height ):
                 #    print("z, h", z, height - 1)
@@ -149,16 +149,41 @@ class RandomFigure(Figure):
                 count = 0
             orig_choice_range = list(range(0, int(relief[x, y])))
             choice_range = orig_choice_range.copy()
-            for i in range(1, len(orig_choice_range)):
-                choice_range += [orig_choice_range[i]] * (np.random.randint((i+1)*10, 100) )
-            choice_range += [0]
-            np.random.shuffle(choice_range)
 
-            choice_range = choice_range[: count+3]
-            print("original choice range", orig_choice_range)
-            print("smth ",orig_choice_range[-len(orig_choice_range)//4:])
-            print("cr", choice_range)
-            choice_range = list(set(choice_range))
+            p = [5]
+            P = 100-p[0]
+            print("full range", choice_range)
+            for i in range(1, len(orig_choice_range)-1):
+                p_ = np.random.randint(0,P)
+                P-=p_
+                p.append(p_)
+            p.append(P)
+            p = np.asarray(p)/100
+            print(p)
+            print(choice_range)
+            holes = []
+            for i in range(count):
+                choice = np.random.choice(choice_range, p = p)
+                index = choice_range.index(choice)
+                print(" p was", p)
+                if index!=(len(p)-2):
+                    p[-2] += p[index]
+                else:
+                    p[1] += p[index]
+                p[index] = 0
+                print(" p become", p)
+                holes.append(choice)
+            print(holes)
+            #np.random.shuffle(choice_range)
+
+            #choice_range = choice_range[: count+3]
+           # choice_range = []
+       #     print("original choice range", orig_choice_range)
+        #    print("smth ",orig_choice_range[-len(orig_choice_range)//4:])
+         #   print("cr", choice_range)
+            choice_range = list(set(holes))
+            print("generated holes")
+            print(choice_range)
             holes_indx[0]  += sorted(choice_range)
 
             holes_indx[1] += [x]*len(choice_range)
