@@ -11,7 +11,7 @@ def target_to_subtasks(figure):
     X, Y = np.where(figure.relief != 0)
     addtional_tower_remote = (2,2)
     for x, y in zip(X, Y):
-        for z in range(targets_plane[x, y]+3):
+        for z in range(targets_plane[x, y]):
             custom_grid = np.zeros((9, 11, 11))
             if (color_plane is None) or (color_plane[z, x, y] == 0):
                 custom_grid[z, x, y] = 1
