@@ -150,15 +150,15 @@ class RandomFigure(Figure):
             orig_choice_range = list(range(0, int(relief[x, y])))
             choice_range = orig_choice_range.copy()
         #
-        #     p = [5]
-        #     P = 100-p[0]
-        #     print("full range", choice_range)
-        #     for i in range(1, len(orig_choice_range)-1):
-        #         p_ = np.random.randint(0,P)
-        #         P-=p_
-        #         p.append(p_)
-        #     p.append(P)
-        #     p = np.asarray(p)/100
+            p = [5]
+            P = 100-p[0]
+            print("full range", choice_range)
+            for i in range(1, len(orig_choice_range)-1):
+                p_ = np.random.randint(0,P)
+                P-=p_
+                p.append(p_)
+            p.append(P)
+            p = np.asarray(p)/100
         #     print(p)
         #     print(choice_range)
         #     holes = []
