@@ -138,7 +138,7 @@ class RandomFigure(Figure):
         relief = figure.sum(axis = 0)
         high_blocks = np.where(relief > 1)
         holes_indx = [[],[],[]]
-
+        count = 0
         for x, y in zip(*high_blocks):
             if relief[x,y] >= 3:
                 if  relief[x,y] == 3:
