@@ -11,7 +11,7 @@ def target_to_subtasks(figure):
     X, Y = np.where(figure.relief != 0)
     addtional_tower_remote = (2,2)
     for x, y in zip(X, Y):
-        for z in range(targets_plane[x, y]):
+        for z in range(targets_plane[x, y] + 1):
             custom_grid = np.zeros((9, 11, 11))
             if (color_plane is None) or (color_plane[z, x, y] == 0):
                 custom_grid[z, x, y] = 1
@@ -136,29 +136,37 @@ class RandomFigure(Figure):
         figure[fig_filter] = 1
 
         relief = figure.sum(axis = 0)
-        high_blocks = np.where(relief > 1)
-        holes_indx = [[],[],[]]
-        count = 0
-        for x, y in zip(*high_blocks):
-            if relief[x,y] >= 3:
-                if  relief[x,y] == 3:
-                    count = np.random.randint(1,relief[x,y]-1)
-                else:
-                    count = np.random.randint(2, relief[x, y] - 1)
-            else:
-                count = 0
-            orig_choice_range = list(range(0, int(relief[x, y])))
-            choice_range = orig_choice_range.copy()
-        #
-            p = [5]
-            P = 100-p[0]
-            print("full range", choice_range)
-            for i in range(1, len(orig_choice_range)-1):
-                p_ = np.random.randint(0,P)
-                P-=p_
-                p.append(p_)
-            p.append(P)
-            p = np.asarray(p)/100
+     #   high_blocks = np.where(relief > 1)
+        #P = figure[:, :, :]
+        P = np.random.random(size = (9,11,11))
+        P[figure==0] = 0
+        blocks_to_remove = np.where(P > 0.3)
+        btr_indices = np.lexsort((blocks_to_remove[0], blocks_to_remove[2], blocks_to_remove[1]))
+        holes_indx = [blocks_to_remove[0][btr_indices],
+                            blocks_to_remove[1][btr_indices],
+                            blocks_to_remove[2][btr_indices]]
+        # holes_indx = [[],[],[]]
+        # count = 0
+        # for x, y in zip(*high_blocks):
+        #     if relief[x,y] >= 3:
+        #         if  relief[x,y] == 3:
+        #             count = np.random.randint(1,relief[x,y]-1)
+        #         else:
+        #             count = np.random.randint(2, relief[x, y] - 1)
+        #     else:
+        #         count = 0
+        #     orig_choice_range = list(range(0, int(relief[x, y])))
+        #     choice_range = orig_choice_range.copy()
+        # #
+        #     p = [5]
+        #     P = 100-p[0]
+        #     print("full range", choice_range)
+        #     for i in range(1, len(orig_choice_range)-1):
+        #         p_ = np.random.randint(0,P)
+        #         P-=p_
+        #         p.append(p_)
+        #     p.append(P)
+        #     p = np.asarray(p)/100
         #     print(p)
         #     print(choice_range)
         #     holes = []
@@ -188,7 +196,8 @@ class RandomFigure(Figure):
         # holes_indx[0]+=1
 
         # if count == 0:
-        holes_indx = [[],[],[]]
+        print(blocks_to_remove)
+      #  holes_indx = [btr_indices[0], btr_indices[1], btr_indices[2]]
         print("count of holes: ", holes_indx[0])
 
     #    print(holes_indx)
