@@ -140,7 +140,7 @@ class RandomFigure(Figure):
         #P = figure[:, :, :]
         P = np.random.random(size = (9,11,11))
         P[figure==0] = 0
-        blocks_to_remove = np.where(P > 0.3)
+        blocks_to_remove = np.where(P > 0.7)
         btr_indices = np.lexsort((blocks_to_remove[0], blocks_to_remove[2], blocks_to_remove[1]))
         holes_indx = [blocks_to_remove[0][btr_indices],
                             blocks_to_remove[1][btr_indices],
