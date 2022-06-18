@@ -166,54 +166,12 @@ class SuccessRateWrapper(gym.Wrapper):
 
 
 class SuccessRateFullFigure(gym.Wrapper):
-
     def step(self, action):
         observation, reward, done, info = self.env.step(action)
         info['episode_extra_stats'] = info.get('episode_extra_stats', {})
-        # roi = info['grid'][info['target_grid'] != 0]
-        # blocks = np.where(roi != 0)
         if done:
             if info['done'] == 'full':
                 info['episode_extra_stats']['CoplitedRate'] = 1
             else:
                 info['episode_extra_stats']['CoplitedRate'] = 0
-        return observation, reward, done, info
-
-
-class R1_score(gym.Wrapper):
-
-    def step(self, action):
-        observation, reward, done, info = self.env.step(action)
-        info['episode_extra_stats'] = info.get('episode_extra_stats', {})
-        # roi = info['grid'][info['target_grid'] != 0]
-        # blocks = np.where(roi != 0)
-        if done:
-            obs_grid = info['done_grid']
-            grid = np.zeros_like(obs_grid)
-            target = np.zeros_like(self.env.original)
-            grid[obs_grid != 0] = 1
-            target[self.env.original != 0] = 1
-
-            maximal_intersection = (grid * target).sum()
-            current_grid_size = grid.sum()
-            target_grid_size = target.sum()
-            curr_prec = maximal_intersection / target_grid_size
-            curr_rec = maximal_intersection / max(current_grid_size, 1)
-
-            if maximal_intersection == 0:
-                curr_f1 = 0
-            else:
-                curr_f1 = 2 * curr_prec * curr_rec / (curr_rec + curr_prec)
-
-            if (target_grid_size == current_grid_size) and not self.env.modified and self.env.rp:
-                curr_f1 = 1
-                maximal_intersection = target_grid_size
-                current_grid_size = target_grid_size
-
-            info['episode_extra_stats']['R1_score'] = curr_f1
-            info['episode_extra_stats']['maximal_intersection'] = maximal_intersection
-            info['episode_extra_stats']['target_grid_size'] = target_grid_size
-            info['episode_extra_stats']['current_grid_size'] = current_grid_size
-
-            # maximal_intersection = (grid * target).sum()
         return observation, reward, done, info
