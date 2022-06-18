@@ -1,9 +1,10 @@
-import gym
-import os
 import logging
-import numpy as np
-from typing import Generator
+import os
 from collections import OrderedDict
+from typing import Generator
+
+import gym
+import numpy as np
 
 logger = logging.getLogger(__file__)
 IGLU_ENABLE_LOG = os.environ.get('IGLU_ENABLE_LOG', '')
@@ -64,7 +65,7 @@ class ObsWrapper(Wrapper):
 
         info['grid'] = obs['grid']
         info['agentPos'] = obs['agentPos']
-        info['obs'] = obs['obs']
+       # info['obs'] = obs['obs']
         return self.observation(obs, reward, done, info), reward, done, info
 
 
@@ -82,7 +83,6 @@ def no_op():
 
 
 def flat_human_level(env, camera_delta=5):
-    #  print(help(env.action_space))
     binary = ['attack', 'forward', 'back', 'left', 'right', 'jump']
     discretes = [no_op()]
     for op in binary:
@@ -113,7 +113,6 @@ class Discretization(ActionsWrapper):
     def __init__(self, env, flatten):
         super().__init__(env)
         camera_delta = 5
-        #  print(env.action_space.no_op)
         self.discretes = flatten(env, camera_delta)
         self.action_space = gym.spaces.Discrete(len(self.discretes))
         self.old_action_space = env.action_space
@@ -121,11 +120,26 @@ class Discretization(ActionsWrapper):
 
     def wrap_action(self, action=None, raw_action=None):
         if action is not None:
-            # raise Exception(action)
             action = self.discretes[action]
         elif raw_action is not None:
             action = raw_action
         yield action
+
+
+class JumpAfterPlace(ActionsWrapper):
+    def __init__(self, env):
+        min_inventory_value = 10
+        max_inventory_value = 17
+        self.act_space = (min_inventory_value, max_inventory_value)
+        super().__init__(env)
+
+    def wrap_action(self, action=None):
+        if (action > self.act_space[0]) and (action < self.act_space[1]) > 0:
+            yield action
+            yield 6
+        else:
+            yield action
+
 
 class ColorWrapper(ActionsWrapper):
     def __init__(self, env):
@@ -136,8 +150,9 @@ class ColorWrapper(ActionsWrapper):
 
     def wrap_action(self, action=None):
         tcolor = np.sum(self.env.task.target_grid)
-        if (action>self.color_space[0]) and (action<self.color_space[1]) and tcolor>0:
-            action = int(self.color_space[0]+tcolor)
+        if (action > self.color_space[0]) and (action < self.color_space[1]) and tcolor > 0:
+            action = int(self.color_space[0] + tcolor)
+            print(action)
         yield action
 
 
@@ -149,7 +164,7 @@ class VectorObservationWrapper(ObsWrapper):
             'grid': gym.spaces.Box(low=0.0, high=6.0, shape=(9, 11, 11)),
             'inventory': gym.spaces.Box(low=0.0, high=20.0, shape=(6,)),
             'target_grid': gym.spaces.Box(low=0.0, high=6.0, shape=(9, 11, 11)),
-            'obs': gym.spaces.Box(low=0, high=1, shape=(self.size, self.size, 3), dtype=np.float32)
+            #    'obs': gym.spaces.Box(low=0, high=1, shape=(self.size, self.size, 3), dtype=np.float32)
         })
 
     def observation(self, obs, reward=None, done=None, info=None):
@@ -181,7 +196,7 @@ class VectorObservationWrapper(ObsWrapper):
             'grid': obs['grid'],
             'inventory': obs['inventory'],
             'target_grid': target_grid,
-            'obs':obs['obs']
+            # 'obs':obs['obs']
         }
 
     def check_component(self, arr, name, low, hi):

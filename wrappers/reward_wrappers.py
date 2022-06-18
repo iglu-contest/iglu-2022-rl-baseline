@@ -9,24 +9,38 @@ def strict_reward_range():
     for_long_distance = [-0.10 - 0.01 * i for i in range(50)]
     return reward_range + for_long_distance
 
+def remove_reward_range():
+    reward_range = [1, 0.0001, 0.00, 0.00, -0.0001, -0.001, -0.01, -0.02, -0.03, -0.04, -0.05, -0.06, -0.07, -0.08,
+                    -0.09]
+    for_long_distance = [-0.10 - 0.01 * i for i in range(50)]
+    return reward_range + for_long_distance
 
 class RangetReward(Wrapper):
     def __init__(self, env, rspec=15):
         super().__init__(env)
         self.rspec = rspec
 
-    def calc_reward(self, dist):
+    def calc_reward(self, dist, remove = False):
         reward_range = strict_reward_range()
+        remove_reward_range_ = remove_reward_range()
         try:
-            reward = reward_range[int(dist)]
-        except:
-            raise Exception("Distance to big! %.3f" % dist)
+            if remove:
+                reward = remove_reward_range_[int(dist)]
+               # if reward == 1:
+                   # raise Exception(np.where(self.env.task.target_grid!=0))
+                print("]]]]]]]]]]]]]]]]]]]]]]]]")
+                print(reward)
+                print("]]]]]]]]]]]]]]]]]]]]]]]]")
+            else:
+                reward = reward_range[int(dist)]
+        except Exception as e:
+            raise Exception(e)
         return reward
 
     def blocks_count(self, info):
         return np.sum(info['grid'] != 0)
 
-    def check_goal_closeness(self, info=None, broi=None):
+    def check_goal_closeness(self, info=None, broi=None, remove = False):
         roi = np.where(self.env.task.target_grid != 0)  # y x z
         goal = np.mean(roi[1]), np.mean(roi[2]), np.mean(roi[0])
         if broi is None:
@@ -35,7 +49,7 @@ class RangetReward(Wrapper):
         dist = ((goal[0] - builds[0]) ** 2 +
                 (goal[1] - builds[1]) ** 2 +
                 (goal[2] - builds[2]) ** 2) ** 0.5
-        return self.calc_reward(dist)
+        return self.calc_reward(dist, remove)
 
 
 def calc_new_blocks(current_grid, last_grid):  # obs[grid], relief
@@ -73,8 +87,8 @@ class RangetRewardFilledField(RangetReward):
     def step(self, action):
         obs, reward, done, info = super().step(action)
 
-        if done:
-            raise Exception("Why&")
+       # if done:
+       #     raise Exception("Why&")
         if done:
             info['done'] = 'len_done_%s' % self.steps
         info['done'] = 'len_done_%s' % self.steps
@@ -88,11 +102,11 @@ class RangetRewardFilledField(RangetReward):
 
         ### Remove some blocks from grid
         z_agent, x_agent, y_agent = np.where(obs['grid'] != 0)
-        if len(x_agent) > 0:
-            new_grid = obs['grid'][:, :, :]
-            new_grid[:, :x_agent[-1] + 1, :] = 0
-            new_grid[:, :, :y_agent[-1] + 1] = 0
-            obs['grid'] = new_grid
+        # if len(x_agent) > 0:
+        #     new_grid = obs['grid'][:, :, :]
+        #     new_grid[:, :x_agent[-1] + 1, :] = 0
+        #     new_grid[:, :, :y_agent[-1] + 1] = 0
+        #     obs['grid'] = new_grid
 
         ### Reward calculation
         reward = 0
@@ -106,7 +120,7 @@ class RangetRewardFilledField(RangetReward):
             elif task > 0 and grid_block_count < relief_block_count:  # если нужно поставить кубик, а агент его удалил
                 reward = -0.001
             else:
-                reward = self.check_goal_closeness(info, broi=new_blocks)  # иначе
+                reward = self.check_goal_closeness(info, broi=new_blocks, remove = task<0)  # иначе
 
             if task < 0:
                 do = 0
@@ -117,18 +131,34 @@ class RangetRewardFilledField(RangetReward):
             x_agent, z_agent, y_agent = obs['agentPos'][:3]
             x_agent, y_agent = x_agent + 5, y_agent + 5
             x_agent, y_agent = int(x_agent + 0.5), int(y_agent + 0.5)
-            _, x_last_block, y_last_blcok = np.where(self.env.task.target_grid != 0)
+            z_last_block, x_last_block, y_last_blcok = np.where(self.env.task.target_grid != 0)
             if reward == 1:
                 self.SR += 1
-                if x_last_block == x_agent and y_last_blcok == y_agent:
+                if x_last_block == x_agent and y_last_blcok == y_agent and (z_agent - z_last_block)<=2:
                     reward += 0.5
+                if task<0:
+                    print()
+                    print()
+                    print()
+                    print("+++++++++++++++++++++++++++++++++")
+                    print(int(x_last_block-x_agent))
+                    print(int(y_last_blcok-y_agent))
+                    print(z_agent)
+                    print(z_last_block)
+                    print("+++++++++++++++++++++++++++++++++")
+                    print()
+                    print()
+                    print()
+                    if int(x_last_block-x_agent)>=0 and int(y_last_blcok-y_agent)>=0 and z_agent>=z_last_block:
+                   #     raise Exception("WRONG!")
+                        reward += 0.5
                 full = self.env.one_round_reset(new_blocks, do)
                 info['done'] = 'right_move'
                 if full:
                     info['done'] = 'full'
                     done = True
 
-            if reward < 1 and reward != 0:
+            if reward < 1:
                 info['done'] = 'mistake_%s' % self.steps
                 done = True
                 self.env.update_field(new_blocks, do)
@@ -138,7 +168,7 @@ class RangetRewardFilledField(RangetReward):
         self.last_grid = obs['grid']
         self.fs = False
         self.info = info
-
+        print(done)
         return obs, reward, done, info
 
 
