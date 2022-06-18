@@ -3,6 +3,12 @@
 
 
 ## Installation
+For this baseline version uses branch ```for_baseline``` from Iglu gridworld repository. You can install this version by the following command:
+
+```bash
+pip install git+https://github.com/iglu-contest/gridworld.git@for_baseline
+```
+
 Just install all dependencies using:
 ```bash
 pip install -r docker/requirements.txt
