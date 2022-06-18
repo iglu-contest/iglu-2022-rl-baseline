@@ -26,11 +26,6 @@ class RangetReward(Wrapper):
         try:
             if remove:
                 reward = remove_reward_range_[int(dist)]
-               # if reward == 1:
-                   # raise Exception(np.where(self.env.task.target_grid!=0))
-                print("]]]]]]]]]]]]]]]]]]]]]]]]")
-                print(reward)
-                print("]]]]]]]]]]]]]]]]]]]]]]]]")
             else:
                 reward = reward_range[int(dist)]
         except Exception as e:
@@ -86,9 +81,7 @@ class RangetRewardFilledField(RangetReward):
 
     def step(self, action):
         obs, reward, done, info = super().step(action)
-
-       # if done:
-       #     raise Exception("Why&")
+        
         if done:
             info['done'] = 'len_done_%s' % self.steps
         info['done'] = 'len_done_%s' % self.steps
@@ -102,12 +95,6 @@ class RangetRewardFilledField(RangetReward):
 
         ### Remove some blocks from grid
         z_agent, x_agent, y_agent = np.where(obs['grid'] != 0)
-        # if len(x_agent) > 0:
-        #     new_grid = obs['grid'][:, :, :]
-        #     new_grid[:, :x_agent[-1] + 1, :] = 0
-        #     new_grid[:, :, :y_agent[-1] + 1] = 0
-        #     obs['grid'] = new_grid
-
         ### Reward calculation
         reward = 0
         task = np.sum(self.env.task.target_grid)  # if < 0 - task if remove, else task is build
@@ -136,28 +123,14 @@ class RangetRewardFilledField(RangetReward):
                 self.SR += 1
                 if x_last_block == x_agent and y_last_blcok == y_agent and (z_agent - z_last_block)<=2:
                     reward += 0.5
-                if task<0:
-                    print()
-                    print()
-                    print()
-                    print("+++++++++++++++++++++++++++++++++")
-                    print(int(x_last_block-x_agent))
-                    print(int(y_last_blcok-y_agent))
-                    print(z_agent)
-                    print(z_last_block)
-                    print("+++++++++++++++++++++++++++++++++")
-                    print()
-                    print()
-                    print()
+                if task<0:              
                     if int(x_last_block-x_agent)>=0 and int(y_last_blcok-y_agent)>=0 and z_agent>=z_last_block:
-                   #     raise Exception("WRONG!")
                         reward += 0.5
                 full = self.env.one_round_reset(new_blocks, do)
                 info['done'] = 'right_move'
                 if full:
                     info['done'] = 'full'
                     done = True
-
             if reward < 1:
                 info['done'] = 'mistake_%s' % self.steps
                 done = True
