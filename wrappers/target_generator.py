@@ -1,5 +1,4 @@
 import numpy as np
-
 from wrappers.artist import random_relief_map, modify, figure_to_3drelief
 
 
@@ -7,57 +6,54 @@ def target_to_subtasks(figure):
     zh, xh, yh = figure.hole_indx
     xy_holes = np.asarray(list(zip(xh, yh)))
     targets_plane = figure.relief.astype(int)
-    color_plane = None  # figure.figure_parametrs['color']
+    color_plane = figure.figure_parametrs['color']
     X, Y = np.where(figure.relief != 0)
-    addtional_tower_remote = (2,2)
+    addtional_tower_remote = (2, 2)
+    #generate main blocks
     for x, y in zip(X, Y):
-        for z in range(targets_plane[x, y] + 1):
+        for z in range(targets_plane[x, y]):
             custom_grid = np.zeros((9, 11, 11))
             if (color_plane is None) or (color_plane[z, x, y] == 0):
                 custom_grid[z, x, y] = 1
-                yield (x - 5, z -1, y - 5, 1), custom_grid
+                yield (x - 5, z - 1, y - 5, 1), custom_grid
             else:
                 custom_grid[z, x, y] = int(color_plane[z, x, y])
-                yield (x - 5, z -1, y - 5, int(color_plane[z, x, y])), custom_grid
-
+                yield (x - 5, z - 1, y - 5, int(color_plane[z, x, y])), custom_grid
         if len(xy_holes) > 0 and x < (11 - addtional_tower_remote[0]) and y < (11 - addtional_tower_remote[1]):
             holes_in_xy = ((xy_holes - [x, y])[:, 0] == 0) & ((xy_holes - [x, y])[:, 1] == 0)
             holes_in_xy = np.where(holes_in_xy == 1)[0]
             additional_blocks = []
             last_height = 0
             z = 0
+            # generate additional blocks
             for height in zh[holes_in_xy]:
-               # raise Exception("!!!")
-                print("HOLES in XY", x, y)
-                print(zh[holes_in_xy])
-                for z in range(last_height, height ):
-                #    print("z, h", z, height - 1)
+                for z in range(last_height, height):
                     custom_grid = np.zeros((9, 11, 11))
                     custom_grid[z, x + addtional_tower_remote[0], y + addtional_tower_remote[1]] = 1
-                    additional_blocks.append((z, x+addtional_tower_remote[0], y+addtional_tower_remote[1]))
+                    additional_blocks.append((z, x + addtional_tower_remote[0], y + addtional_tower_remote[1]))
                     yield (x - 5 + addtional_tower_remote[0], z - 1, y - 5 + addtional_tower_remote[1], 1), custom_grid
                 custom_grid = np.zeros((9, 11, 11))
-
                 custom_grid[height, x, y] = -1
                 last_height = height
+                #make window
                 yield (x - 5, height - 1, y - 5, -1), custom_grid
-          #  print(additional_blocks)
-            if len(additional_blocks)>0:
-                for z,x,y in additional_blocks[::-1]:
-                #    print("!! z, h", z, height - 1)
+            #remove additional blocks
+            if len(additional_blocks) > 0:
+                for z, x, y in additional_blocks[::-1]:
                     custom_grid = np.zeros((9, 11, 11))
-                    custom_grid[z, x , y ] = -1
+                    custom_grid[z, x, y] = -1
                     yield (x - 5, z - 1, y - 5, -1), custom_grid
 
 
-def generate_preobs(min_value, max_value, red_degree = 5):
-    choice_range = list(range(min_value,int(max_value)))
-    p = 1/len(choice_range)
-    p_for_bottom_block = p/red_degree
-    addition_p = (p-p_for_bottom_block)/(len(choice_range)-1)
+def generate_preobs(min_value, max_value, red_degree=5):
+    choice_range = list(range(min_value, int(max_value)))
+    p = 1 / len(choice_range)
+    p_for_bottom_block = p / red_degree
+    addition_p = (p - p_for_bottom_block) / (len(choice_range) - 1)
     p += addition_p
-    probs = [p_for_bottom_block]+[p]*(len(choice_range)-1)
+    probs = [p_for_bottom_block] + [p] * (len(choice_range) - 1)
     return choice_range, probs
+
 
 class Figure():
     def __init__(self, figure=None):
@@ -71,28 +67,16 @@ class Figure():
             self.to_multitask_format(figure)
 
     def to_multitask_format(self, figure_witn_colors):
-        # print("FIGURE")
-        # print(figure_witn_colors.sum(axis = 0))
-        # print()
         figure = np.zeros_like(figure_witn_colors)
         figure[figure_witn_colors > 0] = 1
         self.figure = figure.copy()
         holes, _ = modify(figure)
         _, _, full_figure = self.simplify()
-        full_figure[full_figure!=0] = 1
-        # print("FIGURE without holes")
-        # print(full_figure.sum(axis = 0))
-        # print()
-        blocks = np.where((full_figure - self.figure )!=0)
+        full_figure[full_figure != 0] = 1
+        blocks = np.where((full_figure - self.figure) != 0)
         ind = np.lexsort((blocks[0], blocks[2], blocks[1]))
-        self.hole_indx = (blocks[0][ind],blocks[1][ind],blocks[2][ind])
-      #  print("DIFF")
-     #   print((full_figure - self.figure ).sum(axis = 0))
-    #    print()
-        print("HOLES!")
-     #   print()
-        print(self.hole_indx)
-        figure_parametrs = {'figure': self.figure, 'color': figure_witn_colors}
+        self.hole_indx = (blocks[0][ind], blocks[1][ind], blocks[2][ind])
+        figure_parametrs = {'figure': self.figure, 'color_': figure_witn_colors}
         self.figure_parametrs = figure_parametrs
         return figure
 
@@ -123,7 +107,7 @@ class RandomFigure(Figure):
         plane = np.zeros((11, 11))
         choices, probs = generate_preobs(*self.figures_height_range)
         print(choices, probs)
-        max_heigt = np.random.choice(choices, p = probs)
+        max_heigt = np.random.choice(choices, p=probs)
         relief = np.random.randint(1, max_heigt,
                                    size=(11, 11))
         x, y = np.random.randint(0, 11, size=2)
@@ -134,83 +118,18 @@ class RandomFigure(Figure):
         fig_filter = np.mgrid[0:9, 0:11, 0:11][0] < (relief)
         figure = np.zeros((9, 11, 11))
         figure[fig_filter] = 1
-
-        relief = figure.sum(axis = 0)
-     #   high_blocks = np.where(relief > 1)
-        #P = figure[:, :, :]
-        P = np.random.random(size = (9,11,11))
-        P[figure==0] = 0
+        P = np.random.random(size=(9, 11, 11))
+        P[figure == 0] = 0
         blocks_to_remove = np.where(P > 0.7)
         btr_indices = np.lexsort((blocks_to_remove[0], blocks_to_remove[2], blocks_to_remove[1]))
         holes_indx = [blocks_to_remove[0][btr_indices],
-                            blocks_to_remove[1][btr_indices],
-                            blocks_to_remove[2][btr_indices]]
-        # holes_indx = [[],[],[]]
-        # count = 0
-        # for x, y in zip(*high_blocks):
-        #     if relief[x,y] >= 3:
-        #         if  relief[x,y] == 3:
-        #             count = np.random.randint(1,relief[x,y]-1)
-        #         else:
-        #             count = np.random.randint(2, relief[x, y] - 1)
-        #     else:
-        #         count = 0
-        #     orig_choice_range = list(range(0, int(relief[x, y])))
-        #     choice_range = orig_choice_range.copy()
-        # #
-        #     p = [5]
-        #     P = 100-p[0]
-        #     print("full range", choice_range)
-        #     for i in range(1, len(orig_choice_range)-1):
-        #         p_ = np.random.randint(0,P)
-        #         P-=p_
-        #         p.append(p_)
-        #     p.append(P)
-        #     p = np.asarray(p)/100
-        #     print(p)
-        #     print(choice_range)
-        #     holes = []
-        #     for i in range(count):
-        #         choice = np.random.choice(choice_range, p = p)
-        #         index = choice_range.index(choice)
-        #         print(" p was", p)
-        #         if index!=(len(p)-2):
-        #             p[-2] += p[index]
-        #         else:
-        #             p[1] += p[index]
-        #         p[index] = 0
-        #         print(" p become", p)
-        #         holes.append(choice)
-        #     print(holes)
-        #
-        #     choice_range = list(set(holes))
-        #     print("generated holes")
-        #     print(choice_range)
-        #     holes_indx[0]  += sorted(choice_range)
-        #
-        #     holes_indx[1] += [x]*len(choice_range)
-        #     holes_indx[2] += [y]*len(choice_range)
-        #     print("hi", holes_indx)
-        #
-        # holes_indx = np.asarray(holes_indx)
-        # holes_indx[0]+=1
-
-        # if count == 0:
-        print(blocks_to_remove)
-      #  holes_indx = [btr_indices[0], btr_indices[1], btr_indices[2]]
-        print("count of holes: ", holes_indx[0])
-
-    #    print(holes_indx)
-   #     print(figure.shape)
-
-        if len(holes_indx[0])>0:
-            figure[holes_indx[0], holes_indx[1],holes_indx[2]] = 0
-    #    print("GENERATED HOLES")
-        holes_map = np.zeros((9,11,11))
+                      blocks_to_remove[1][btr_indices],
+                      blocks_to_remove[2][btr_indices]]
         if len(holes_indx[0]) > 0:
-            holes_map[holes_indx[0], holes_indx[1],holes_indx[2]] = 1
-    #    print(holes_map.sum(axis = 0))
-      #  print()
+            figure[holes_indx[0], holes_indx[1], holes_indx[2]] = 0
+        holes_map = np.zeros((9, 11, 11))
+        if len(holes_indx[0]) > 0:
+            holes_map[holes_indx[0], holes_indx[1], holes_indx[2]] = 1
         self.hole_indx = holes_indx.copy()
         self.figure = figure
         self.simplify()
@@ -241,7 +160,7 @@ class DatasetFigure(Figure):
         original_ones[original > 0] = 1
         if use_dialogue:
             figure_ = self.target_predictor(self.augmented_chats[idx]).detach().numpy()
-            fig2 = figure_[:, :, :]
+            fig2 = figure_[:, :, :].copy()
             fig2[fig2 > 0] = 1
             rp = (fig2 - at).sum() == 0  # is figure right predicted
         else:
@@ -251,6 +170,7 @@ class DatasetFigure(Figure):
         figure = self.to_multitask_format(figure_)
         self.figure_parametrs['name'] = name
         self.figure_parametrs['original'] = original
+        self.figure_parametrs['color'] = figure_
         self.figure_parametrs['right_predicted'] = rp
         self.figure_parametrs['relief'] = self.relief
         return figure
@@ -260,9 +180,9 @@ class DatasetFigure(Figure):
         while True:
             idx = i % len(self.augmented_targets)
             i += 1
-            relief, holes, figure, name, rp, is_modified, original, f1_onstart = self.load_figure(idx, use_dialogue)
+            figure = self.load_figure(idx, use_dialogue)
 
-            yield relief, holes, figure, name, rp, is_modified, original, f1_onstart, self.augmented_chats[idx]
+            yield figure, self.augmented_chats[idx]
         return
 
     def make_task(self):

@@ -24,7 +24,7 @@ class GridWorld(Env):
         self.starting_grid = []
         self.task = Task('', target)
         self.step_no = 0
-        self.size = 256
+        self.size = 512
         self.right_placement_scale = right_placement_scale
         self.wrong_placement_scale = wrong_placement_scale
         self.max_steps = max_steps

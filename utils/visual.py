@@ -30,7 +30,7 @@ class Visual(Wrapper):
         self.logging = False
         self.turned_off = True
         self.glob_step = 0
-        self.size = 256
+        self.size = 512
      #   print(self.observation_space.spaces)
 
         self.observation_space.spaces['obs'] = Box(low=0, high=1, shape=(self.size, self.size, 3), dtype=np.float32)
