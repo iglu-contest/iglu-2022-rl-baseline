@@ -1,4 +1,3 @@
- BASE OF PRJECT: 
 # SampleFactory APPO baseline for Iglu
 
 
