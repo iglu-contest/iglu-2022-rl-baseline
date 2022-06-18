@@ -8,7 +8,8 @@ from sample_factory.envs.env_registry import global_env_registry
 
 from gridworld.env import GridWorld
 from models.models import ResnetEncoderWithTarget
-from visual import Visual
+from gridworld.env import Visual
+
 from wrappers.common_wrappers import VectorObservationWrapper, \
     Discretization, flat_action_space, ColorWrapper, JumpAfterPlace
 from wrappers.loggers import VideoLogger

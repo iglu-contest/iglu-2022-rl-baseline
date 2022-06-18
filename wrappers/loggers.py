@@ -27,6 +27,7 @@ class VideoLogger(Wrapper):
         self.new_session = True
         self.add_to_name = ''
         self.info = {'done': 0}
+        self.size = 64
         os.makedirs(self.dirname, exist_ok=True)
 
     def flush(self):
@@ -47,7 +48,7 @@ class VideoLogger(Wrapper):
             self.frames = []
             self.obs = []
             self.out = cv2.VideoWriter(f'{self.filename}.mp4', cv2.VideoWriter_fourcc(*'mp4v'),
-                                       20, (self.env.size, self.env.size))
+                                       20, (self.size, self.size))
             self.new_session = False
 
     def reset(self):
