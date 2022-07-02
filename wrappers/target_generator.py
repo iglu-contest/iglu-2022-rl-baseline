@@ -142,7 +142,6 @@ class RandomFigure(Figure):
         self.figure_parametrs = {'figure': figure, 'color': figure * self.color, 'relief': self.relief}
         return figure
 
-
 if __name__ == "__main__":
     figure = RandomFigure()
     figure.make_task()

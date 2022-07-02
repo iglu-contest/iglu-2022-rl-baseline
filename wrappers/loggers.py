@@ -136,9 +136,9 @@ class Logger(Wrapper):
 
     def flush(self):
         if self.filename is not None:
-            with open(f'{self.filename}-act.pkl', 'wb') as f:
+            with open(f'{self.filename}-{self.env.figure.figure_parametrs["name"]}-act.pkl', 'wb') as f:
                 pickle.dump(self.actions, f)
-            with open(f'{self.filename}-obs.pkl', 'wb') as f:
+            with open(f'{self.filename}-{self.env.figure.figure_parametrs["name"]}-obs.pkl', 'wb') as f:
                 pickle.dump(self.obs, f)
             self.obs = []
 
