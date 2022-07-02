@@ -62,10 +62,9 @@ class ObsWrapper(Wrapper):
 
     def step(self, action):
         obs, reward, done, info = super().step(action)
-
         info['grid'] = obs['grid']
         info['agentPos'] = obs['agentPos']
-       # info['obs'] = obs['obs']
+        info['obs'] = obs['pov']
         return self.observation(obs, reward, done, info), reward, done, info
 
 
@@ -128,15 +127,16 @@ class Discretization(ActionsWrapper):
 
 class JumpAfterPlace(ActionsWrapper):
     def __init__(self, env):
-        min_inventory_value = 10
-        max_inventory_value = 17
+        min_inventory_value = 5
+        max_inventory_value = 12
         self.act_space = (min_inventory_value, max_inventory_value)
         super().__init__(env)
 
     def wrap_action(self, action=None):
         if (action > self.act_space[0]) and (action < self.act_space[1]) > 0:
             yield action
-            yield 6
+            yield 5
+            yield 5
         else:
             yield action
 
@@ -144,15 +144,14 @@ class JumpAfterPlace(ActionsWrapper):
 class ColorWrapper(ActionsWrapper):
     def __init__(self, env):
         super().__init__(env)
-        min_inventory_value = 10
-        max_inventory_value = 17
+        min_inventory_value = 5
+        max_inventory_value = 12
         self.color_space = (min_inventory_value, max_inventory_value)
 
     def wrap_action(self, action=None):
         tcolor = np.sum(self.env.task.target_grid)
         if (action > self.color_space[0]) and (action < self.color_space[1]) and tcolor > 0:
             action = int(self.color_space[0] + tcolor)
-            print(action)
         yield action
 
 
@@ -185,7 +184,7 @@ class VectorObservationWrapper(ObsWrapper):
             if 'target_grid' in info:
                 target_grid = self.env.task.target_grid
             else:
-                logger.error(f'info: {info}')
+                # logger.error(f'info: {info}')
                 if hasattr(self.unwrapped, 'should_reset'):
                     self.unwrapped.should_reset(True)
                 target_grid = self.env.task.target_grid

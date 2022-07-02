@@ -53,7 +53,7 @@ class ResnetEncoderWithTarget(EncoderBase):
         # values for normalization
         abs_max_obs = np.array([10, 8, 10, 180, 360])  # x, y, z, yaw, pitch
         true_max_obs = np.array([5, 0, 5, 90, 0])  # x, y, z, yaw, pitch
-        max_inventory_val = 190
+        max_inventory_val = 20
 
         abs_max_obs = torch.from_numpy(abs_max_obs).cuda()
         true_max_obs = torch.from_numpy(true_max_obs).cuda()
@@ -115,8 +115,6 @@ def main():
     obs['inventory'] = torch.Tensor(obs['inventory'])[None]
     obs['target_grid'] = torch.Tensor(obs['target_grid'])[None]
     obs['obs'] = torch.Tensor(obs['obs'])[None]
-
-    print(encoder.forward(obs).shape)
 
 
 if __name__ == '__main__':
