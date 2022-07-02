@@ -142,67 +142,6 @@ class RandomFigure(Figure):
         self.figure_parametrs = {'figure': figure, 'color': figure * self.color, 'relief': self.relief}
         return figure
 
-
-class DatasetFigure(Figure):
-    main_figure = None
-
-    def __init__(self, path_to_targets='../dialogue/augmented_targets.npy',
-                 path_to_names='../dialogue/augmented_target_name.npy',
-                 path_to_chats='../dialogue/augmented_chats.npy', generator=True, main_figure=None):
-        super().__init__()
-        from dialogue.model import TargetPredictor
-        self.augmented_targets = np.load(path_to_targets)[:300]
-        self.augmented_targets_names = np.load(path_to_names)[:300]
-        self.augmented_chats = np.load(path_to_chats)[:300]
-        self.target_predictor = TargetPredictor().cpu()
-        if generator:
-            self.generator = self.figures_generator()
-
-    def load_figure(self, idx, use_dialogue=True):
-        name = self.augmented_targets_names[idx]
-        at = self.augmented_targets[idx][:, :, :]
-        at[self.augmented_targets[idx] > 0] = 1
-        original = self.augmented_targets[idx]
-        original_ones = np.zeros_like(original)
-        original_ones[original > 0] = 1
-        if use_dialogue:
-            figure_ = self.target_predictor(self.augmented_chats[idx]).detach().numpy()
-            fig2 = figure_[:, :, :].copy()
-            fig2[fig2 > 0] = 1
-            rp = (fig2 - at).sum() == 0  # is figure right predicted
-        else:
-            figure_ = self.augmented_targets[idx]
-            rp = 1  # is figure right predicted
-
-        new_figure = np.zeros_like(figure_)
-        new_figure[:, 1:, 1:] = figure_[:, :-1, :-1]
-        figure_ = new_figure.copy()
-        figure = self.to_multitask_format(figure_)
-        self.figure_parametrs['name'] = name
-        self.figure_parametrs['original'] = original
-        self.figure_parametrs['color'] = figure_
-        self.figure_parametrs['right_predicted'] = rp
-        self.figure_parametrs['relief'] = self.relief
-        return figure
-
-    def figures_generator(self, use_dialogue=True):
-        i = 0
-        while True:
-            idx = i % len(self.augmented_targets)
-            i += 1
-            figure = self.load_figure(idx, use_dialogue)
-
-            yield figure, self.augmented_chats[idx]
-        return
-
-    def make_task(self):
-        if self.main_figure is not None:
-            figure = self.load_figure(self.main_figure, True)
-        else:
-            figure = next(self.generator)
-        return figure
-
-
 if __name__ == "__main__":
     figure = RandomFigure()
     figure.make_task()
