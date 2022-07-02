@@ -3,8 +3,8 @@ import os
 
 import gym
 import numpy as np
+from gridworld.tasks.task import Task
 
-from gridworld.task import Task
 from wrappers.target_generator import RandomFigure, Figure, target_to_subtasks
 
 logger = logging.getLogger(__file__)
@@ -31,10 +31,10 @@ class TargetGenerator(gym.Wrapper):
     def reset(self):
         X = []
         self.figure.make_task()
-        if self.figure.use_color:
+        if isinstance(self.figure, RandomFigure):
             min_block_in_fig = 10
         else:
-            min_block_in_fig = 10
+            min_block_in_fig = 0
         while len(X) <= min_block_in_fig:
             self.figure.make_task()
             relief = self.figure.figure_parametrs['relief']
@@ -75,7 +75,6 @@ class SubtaskGenerator(gym.Wrapper):
             coord, custom_grid = next(self.generator)
             x, z, y, id = coord
             id = id / abs(id)
-            print(x, z + 1, y, id)
             self.current_grid[z + 1, x + 5, y + 5] += id
 
         self.current_grid[self.current_grid < 0] = 0
@@ -97,7 +96,6 @@ class SubtaskGenerator(gym.Wrapper):
         self.generator = target_to_subtasks(self.env.figure)
         size = int(len(np.where(self.env.figure.figure_parametrs['figure'] != 0)[0]) * 0.6)
         starting_grid, prebuilded = self.init_relief(size)
-        print(starting_grid)
         try:
             task = next(self.generator)
         except:

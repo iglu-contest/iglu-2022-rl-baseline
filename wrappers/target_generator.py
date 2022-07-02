@@ -1,4 +1,5 @@
 import numpy as np
+
 from wrappers.artist import random_relief_map, modify, figure_to_3drelief
 
 
@@ -9,7 +10,7 @@ def target_to_subtasks(figure):
     color_plane = figure.figure_parametrs['color']
     X, Y = np.where(figure.relief != 0)
     addtional_tower_remote = (2, 2)
-    #generate main blocks
+    # generate main blocks
     for x, y in zip(X, Y):
         for z in range(targets_plane[x, y]):
             custom_grid = np.zeros((9, 11, 11))
@@ -25,7 +26,6 @@ def target_to_subtasks(figure):
             additional_blocks = []
             last_height = 0
             z = 0
-            # generate additional blocks
             for height in zh[holes_in_xy]:
                 for z in range(last_height, height):
                     custom_grid = np.zeros((9, 11, 11))
@@ -35,9 +35,9 @@ def target_to_subtasks(figure):
                 custom_grid = np.zeros((9, 11, 11))
                 custom_grid[height, x, y] = -1
                 last_height = height
-                #make window
+                # make window
                 yield (x - 5, height - 1, y - 5, -1), custom_grid
-            #remove additional blocks
+            # remove additional blocks
             if len(additional_blocks) > 0:
                 for z, x, y in additional_blocks[::-1]:
                     custom_grid = np.zeros((9, 11, 11))
@@ -70,7 +70,6 @@ class Figure():
         figure = np.zeros_like(figure_witn_colors)
         figure[figure_witn_colors > 0] = 1
         self.figure = figure.copy()
-        holes, _ = modify(figure)
         _, _, full_figure = self.simplify()
         full_figure[full_figure != 0] = 1
         blocks = np.where((full_figure - self.figure) != 0)
@@ -84,9 +83,17 @@ class Figure():
         if self.figure is not None:
             fig = self.figure.copy()
             is_modified, new_figure = modify(fig)
-            target, relief = figure_to_3drelief(new_figure)
-            full_figure = relief.copy()
+            target, relief = figure_to_3drelief(self.figure)
+
             relief = relief.max(axis=0)
+            ones = np.ones((11, 11)) * np.arange(1, 10).reshape(-1, 1, 1)
+
+            ones[ones <= relief] = 1
+            ones[:, relief == 0] = 0
+            ones[ones > relief] = 0
+
+            full_figure = ones.copy()
+
             holes = relief - target.sum(axis=0)
             self.relief = relief
             self.simpl_holes = holes
@@ -106,7 +113,6 @@ class RandomFigure(Figure):
     def make_task(self):
         plane = np.zeros((11, 11))
         choices, probs = generate_preobs(*self.figures_height_range)
-        print(choices, probs)
         max_heigt = np.random.choice(choices, p=probs)
         relief = np.random.randint(1, max_heigt,
                                    size=(11, 11))
@@ -136,14 +142,10 @@ class RandomFigure(Figure):
         self.figure_parametrs = {'figure': figure, 'color': figure * self.color, 'relief': self.relief}
         return figure
 
+
 if __name__ == "__main__":
     figure = RandomFigure()
     figure.make_task()
     generator = target_to_subtasks(figure)
-    print(figure.relief)
-
     for i in range(25):
         task = next(generator)
-        print()
-        print("task is: ", task[0][-1])
-        print(np.where(task[1] != 0))

@@ -1,11 +1,12 @@
 import gym
 import numpy as np
+from gridworld.env import GridWorld
+from gridworld.tasks.task import Task
 from gym.spaces import Box
 from sample_factory.algorithms.utils.multi_agent_wrapper import MultiAgentWrapper
 
-from gridworld.env import GridWorld
 from wrappers.common_wrappers import VectorObservationWrapper, \
-    Discretization, flat_action_space,JumpAfterPlace
+    JumpAfterPlace
 from wrappers.loggers import SuccessRateFullFigure
 from wrappers.multitask import TargetGenerator, SubtaskGenerator
 from wrappers.reward_wrappers import RangetRewardFilledField, Closeness
@@ -35,17 +36,18 @@ class FakeObsWrapper(gym.ObservationWrapper):
 
 def make_iglu(*args, **kwargs):
     custom_grid = np.ones((9, 11, 11))
-    env = GridWorld(custom_grid, render=False, select_and_place=True, max_steps=1000)
-    #env = FakeObsWrapper(env)
+    env = GridWorld(render=False, select_and_place=True, discretize=True, max_steps=1000)
+    env.set_task(Task("", custom_grid, invariant=False))
+
     figure_generator = RandomFigure
     env = TargetGenerator(env, fig_generator=figure_generator)
     env = SubtaskGenerator(env)
     env = VectorObservationWrapper(env)
-    env = Discretization(env, flat_action_space('human-level'))
+
     env = JumpAfterPlace(env)
     env = RangetRewardFilledField(env)
     env = Closeness(env)
-    # env = SuccessRateWrapper(env)
+
     env = SuccessRateFullFigure(env)
     env = MultiAgentWrapper(env)
     env = AutoResetWrapper(env)
