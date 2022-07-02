@@ -117,6 +117,7 @@ class APPOHolder:
 
 
 def download_weights():
+    print("Downloading weights...")
     directory = ('./train_dir/0005/force_envs_single_thread=False;num_envs_per_worker=1;num_workers=10/' +
              'TreeChopBaseline-iglu/checkpoint_p0/')
     if not os.path.exists(directory):
