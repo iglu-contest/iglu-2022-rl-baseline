@@ -21,7 +21,6 @@ def make_iglu(*args, **kwargs):
     custom_grid = np.ones((9, 11, 11))
     env = GridWorld(render=True, select_and_place=True, discretize=True, max_steps=1000, render_size=(512, 512))
     env.set_task(Task("", custom_grid))
-
     figure_generator = RandomFigure
     env = TargetGenerator(env, fig_generator=figure_generator)
     env = SubtaskGenerator(env)
