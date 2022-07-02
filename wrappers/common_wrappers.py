@@ -6,6 +6,8 @@ from typing import Generator
 import gym
 import numpy as np
 
+from wrappers.target_generator import RandomFigure
+
 logger = logging.getLogger(__file__)
 IGLU_ENABLE_LOG = os.environ.get('IGLU_ENABLE_LOG', '')
 
@@ -151,7 +153,10 @@ class ColorWrapper(ActionsWrapper):
     def wrap_action(self, action=None):
         tcolor = np.sum(self.env.task.target_grid)
         if (action > self.color_space[0]) and (action < self.color_space[1]) and tcolor > 0:
-            action = int(self.color_space[0] + tcolor)
+            if isinstance(self.env.figure, RandomFigure):
+                action = int(self.color_space[0] + np.random.randint(1, 6))
+            else:
+                action = int(self.color_space[0] + tcolor)
         yield action
 
 
