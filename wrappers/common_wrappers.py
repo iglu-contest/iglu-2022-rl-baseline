@@ -164,7 +164,7 @@ class VectorObservationWrapper(ObsWrapper):
     def __init__(self, env):
         super().__init__(env)
 
-        if 'pov' in self.env.observation_space:
+        if 'pov' in self.env.observation_space.keys():
             self.observation_space = gym.spaces.Dict({
                 'agentPos': gym.spaces.Box(low=-5000.0, high=5000.0, shape=(5,)),
                 'grid': gym.spaces.Box(low=0.0, high=6.0, shape=(9, 11, 11)),
@@ -205,7 +205,7 @@ class VectorObservationWrapper(ObsWrapper):
         else:
             target_grid = self.env.task.target_grid
 
-        if 'pov' in self.env.observation_space:
+        if 'pov' in self.env.observation_space.keys():
             return {
                 'agentPos': obs['agentPos'],
                 'grid': obs['grid'],
