@@ -6,6 +6,8 @@ from typing import Generator
 import gym
 import numpy as np
 
+from wrappers.target_generator import RandomFigure
+
 logger = logging.getLogger(__file__)
 IGLU_ENABLE_LOG = os.environ.get('IGLU_ENABLE_LOG', '')
 
@@ -151,20 +153,33 @@ class ColorWrapper(ActionsWrapper):
     def wrap_action(self, action=None):
         tcolor = np.sum(self.env.task.target_grid)
         if (action > self.color_space[0]) and (action < self.color_space[1]) and tcolor > 0:
-            action = int(self.color_space[0] + tcolor)
+            if isinstance(self.env.figure, RandomFigure):
+                action = int(self.color_space[0] + np.random.randint(1, 6))
+            else:
+                action = int(self.color_space[0] + tcolor)
         yield action
 
 
 class VectorObservationWrapper(ObsWrapper):
     def __init__(self, env):
         super().__init__(env)
-        self.observation_space = gym.spaces.Dict({
-            'agentPos': gym.spaces.Box(low=-5000.0, high=5000.0, shape=(5,)),
-            'grid': gym.spaces.Box(low=0.0, high=6.0, shape=(9, 11, 11)),
-            'inventory': gym.spaces.Box(low=0.0, high=20.0, shape=(6,)),
-            'target_grid': gym.spaces.Box(low=0.0, high=6.0, shape=(9, 11, 11)),
-            #    'obs': gym.spaces.Box(low=0, high=1, shape=(self.size, self.size, 3), dtype=np.float32)
-        })
+
+        if 'pov' in self.env.observation_space.keys():
+            self.observation_space = gym.spaces.Dict({
+                'agentPos': gym.spaces.Box(low=-5000.0, high=5000.0, shape=(5,)),
+                'grid': gym.spaces.Box(low=0.0, high=6.0, shape=(9, 11, 11)),
+                'inventory': gym.spaces.Box(low=0.0, high=20.0, shape=(6,)),
+                'target_grid': gym.spaces.Box(low=0.0, high=6.0, shape=(9, 11, 11)),
+                'obs': gym.spaces.Box(low=0, high=1, shape=(self.env.render_size[0], self.env.render_size[0], 3),
+                                      dtype=np.float32)
+            })
+        else:
+            self.observation_space = gym.spaces.Dict({
+                'agentPos': gym.spaces.Box(low=-5000.0, high=5000.0, shape=(5,)),
+                'grid': gym.spaces.Box(low=0.0, high=6.0, shape=(9, 11, 11)),
+                'inventory': gym.spaces.Box(low=0.0, high=20.0, shape=(6,)),
+                'target_grid': gym.spaces.Box(low=0.0, high=6.0, shape=(9, 11, 11))
+            })
 
     def observation(self, obs, reward=None, done=None, info=None):
         if IGLU_ENABLE_LOG == '1':
@@ -190,13 +205,22 @@ class VectorObservationWrapper(ObsWrapper):
                 target_grid = self.env.task.target_grid
         else:
             target_grid = self.env.task.target_grid
-        return {
-            'agentPos': obs['agentPos'],
-            'grid': obs['grid'],
-            'inventory': obs['inventory'],
-            'target_grid': target_grid,
-            # 'obs':obs['obs']
-        }
+
+        if 'pov' in self.env.observation_space.keys():
+            return {
+                'agentPos': obs['agentPos'],
+                'grid': obs['grid'],
+                'inventory': obs['inventory'],
+                'target_grid': target_grid,
+                'obs': obs['pov']
+            }
+        else:
+            return {
+                'agentPos': obs['agentPos'],
+                'grid': obs['grid'],
+                'inventory': obs['inventory'],
+                'target_grid': target_grid,
+            }
 
     def check_component(self, arr, name, low, hi):
         if (arr < low).any():

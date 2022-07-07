@@ -3,6 +3,7 @@ import numpy as np
 from wrappers.artist import random_relief_map, modify, figure_to_3drelief
 
 
+
 def target_to_subtasks(figure):
     zh, xh, yh = figure.hole_indx
     xy_holes = np.asarray(list(zip(xh, yh)))
@@ -10,7 +11,7 @@ def target_to_subtasks(figure):
     color_plane = figure.figure_parametrs['color']
     X, Y = np.where(figure.relief != 0)
     addtional_tower_remote = (2, 2)
-    # generate main blocks
+    #generate main blocks
     for x, y in zip(X, Y):
         for z in range(targets_plane[x, y]):
             custom_grid = np.zeros((9, 11, 11))
@@ -26,6 +27,9 @@ def target_to_subtasks(figure):
             additional_blocks = []
             last_height = 0
             z = 0
+            # generate additional blocks
+            print("Holes^")
+            print(zh[holes_in_xy])
             for height in zh[holes_in_xy]:
                 for z in range(last_height, height):
                     custom_grid = np.zeros((9, 11, 11))
@@ -35,14 +39,15 @@ def target_to_subtasks(figure):
                 custom_grid = np.zeros((9, 11, 11))
                 custom_grid[height, x, y] = -1
                 last_height = height
-                # make window
+                #make window
                 yield (x - 5, height - 1, y - 5, -1), custom_grid
-            # remove additional blocks
+            #remove additional blocks
             if len(additional_blocks) > 0:
                 for z, x, y in additional_blocks[::-1]:
                     custom_grid = np.zeros((9, 11, 11))
                     custom_grid[z, x, y] = -1
                     yield (x - 5, z - 1, y - 5, -1), custom_grid
+
 
 
 def generate_preobs(min_value, max_value, red_degree=5):
@@ -148,3 +153,4 @@ if __name__ == "__main__":
     generator = target_to_subtasks(figure)
     for i in range(25):
         task = next(generator)
+        print(task[0])
