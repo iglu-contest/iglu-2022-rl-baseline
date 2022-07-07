@@ -170,7 +170,8 @@ class VectorObservationWrapper(ObsWrapper):
                 'grid': gym.spaces.Box(low=0.0, high=6.0, shape=(9, 11, 11)),
                 'inventory': gym.spaces.Box(low=0.0, high=20.0, shape=(6,)),
                 'target_grid': gym.spaces.Box(low=0.0, high=6.0, shape=(9, 11, 11)),
-                'obs': gym.spaces.Box(low=0, high=1, shape=(self.env.render_size[0], self.env.render_size[0], 3), dtype=np.float32)
+                'obs': gym.spaces.Box(low=0, high=1, shape=(self.env.render_size[0], self.env.render_size[0], 3),
+                                      dtype=np.float32)
             })
         else:
             self.observation_space = gym.spaces.Dict({
@@ -211,7 +212,7 @@ class VectorObservationWrapper(ObsWrapper):
                 'grid': obs['grid'],
                 'inventory': obs['inventory'],
                 'target_grid': target_grid,
-                'obs':obs['pov']
+                'obs': obs['pov']
             }
         else:
             return {
