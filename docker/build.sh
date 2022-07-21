@@ -1,1 +1,1 @@
-docker build -t iglu-fast-baseline . --build-arg CACHEBUST=$(date +%s)
+docker build -t iglu-fast-baseline ./docker --build-arg CACHEBUST=$(date +%s) 
