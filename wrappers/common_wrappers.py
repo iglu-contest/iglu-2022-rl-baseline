@@ -66,7 +66,7 @@ class ObsWrapper(Wrapper):
         obs, reward, done, info = super().step(action)
         info['grid'] = obs['grid']
         info['agentPos'] = obs['agentPos']
-        info['obs'] = obs['pov']
+       # info['obs'] = obs['pov']
         return self.observation(obs, reward, done, info), reward, done, info
 
 
