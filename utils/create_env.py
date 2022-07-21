@@ -1,7 +1,6 @@
 import gym
 import numpy as np
-from gridworld.env import GridWorld
-from gridworld.tasks.task import Task
+
 from gym.spaces import Box
 from sample_factory.algorithms.utils.multi_agent_wrapper import MultiAgentWrapper
 
@@ -22,7 +21,7 @@ class AutoResetWrapper(gym.Wrapper):
 
 
 class FakeObsWrapper(gym.ObservationWrapper):
-
+git 
     def __init__(self, env):
         super().__init__(env)
 
@@ -35,8 +34,10 @@ class FakeObsWrapper(gym.ObservationWrapper):
 
 
 def make_iglu(*args, **kwargs):
+    from gridworld.env import GridWorld
+    from gridworld.tasks.task import Task
     custom_grid = np.ones((9, 11, 11))
-    env = GridWorld(render=False, select_and_place=True, discretize=True, max_steps=1000)
+    env = GridWorld(render=True, select_and_place=True, discretize=True, max_steps=1000)
     env.set_task(Task("", custom_grid, invariant=False))
 
     figure_generator = RandomFigure
