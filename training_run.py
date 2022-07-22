@@ -16,7 +16,7 @@ from sample_factory.algorithms.appo.model_utils import register_custom_encoder
 from models.models import ResnetEncoderWithTarget
 from utils.create_env import make_iglu
 from utils.config_validation import Experiment
-
+from torch.multiprocessing import Pool, Process, set_start_method
 
 def iglu_extra_summaries(policy_id, policy_avg_stats, env_steps, summary_writer, cfg):
     for key in policy_avg_stats:
@@ -105,4 +105,5 @@ def main():
 
 
 if __name__ == '__main__':
+    set_start_method('spawn')
     sys.exit(main())
