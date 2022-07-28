@@ -31,7 +31,9 @@ def iglu_extra_summaries(policy_id, policy_avg_stats, env_steps, summary_writer,
 
 
 def make_env(full_env_name, cfg=None, env_config=None):
-    return make_iglu()
+    if env_config is None:
+        env_config = {}
+    return make_iglu(**env_config)
     # return make_treechop()
 
 
@@ -105,5 +107,4 @@ def main():
 
 
 if __name__ == '__main__':
-    set_start_method('spawn')
     sys.exit(main())

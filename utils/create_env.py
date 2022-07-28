@@ -21,7 +21,6 @@ class AutoResetWrapper(gym.Wrapper):
 
 
 class FakeObsWrapper(gym.ObservationWrapper):
-git 
     def __init__(self, env):
         super().__init__(env)
 
@@ -37,7 +36,7 @@ def make_iglu(*args, **kwargs):
     from gridworld.env import GridWorld
     from gridworld.tasks.task import Task
     custom_grid = np.ones((9, 11, 11))
-    env = GridWorld(render=True, select_and_place=True, discretize=True, max_steps=1000)
+    env = GridWorld(render=True, select_and_place=True, discretize=True, max_steps=1000, fake=kwargs.get('fake', False))
     env.set_task(Task("", custom_grid, invariant=False))
 
     figure_generator = RandomFigure
