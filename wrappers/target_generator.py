@@ -106,6 +106,24 @@ class Figure():
             raise Exception("The figure is not initialized! Use 'make_task' method to do it!")
         return relief, holes, full_figure
 
+        
+class UserFigure(Figure):
+
+    def __init__(self, voxel):
+        super().__init__()
+        self.voxel = voxel
+
+    def make_task(self):
+
+        right_voxel_ones = self.voxel[:, :, :]
+        right_voxel_ones[self.voxel > 0] = 1
+
+        figure = self.to_multitask_format(self.voxel)
+        self.figure_parametrs['name'] = dialogue
+        self.figure_parametrs['original'] = self.voxel
+        self.figure_parametrs['color'] = self.voxel
+        self.figure_parametrs['relief'] = self.relief
+        return figure
 
 class RandomFigure(Figure):
     def __init__(self, cnf=None, color=1):
