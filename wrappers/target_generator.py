@@ -108,6 +108,7 @@ class Figure():
 
         
 class UserFigure(Figure):
+     voxel = np.zeros((9,11,11))
 
     def __init__(self, voxel):
         super().__init__()
