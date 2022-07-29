@@ -15,7 +15,7 @@ from wrappers.loggers import VideoLogger, Logger
 from wrappers.multitask import SubtaskGenerator, TargetGenerator
 from wrappers.reward_wrappers import RangetRewardFilledField
 
-from wrappers.target_generator import  RandomFigure
+from wrappers.target_generator import  UserFigure
 
 
 def make_iglu(*args, **kwargs):
@@ -23,7 +23,8 @@ def make_iglu(*args, **kwargs):
     env = GridWorld(render=True, select_and_place=True, discretize=True, max_steps=1000, render_size=(512, 512))
     env.set_task(Task("", custom_grid))
 
-    figure_generator = RandomFigure
+    figure_generator = UserFigure
+    figure_generator.voxel[3,3,3] = 1
 
     env = TargetGenerator(env, fig_generator=figure_generator)
     env = SubtaskGenerator(env)

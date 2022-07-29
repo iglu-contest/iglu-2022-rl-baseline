@@ -108,11 +108,15 @@ class Figure():
 
         
 class UserFigure(Figure):
-     voxel = np.zeros((9,11,11))
+    voxel = np.zeros((9,11,11))
 
-    def __init__(self, voxel):
+    def __init__(self, voxel = None):
         super().__init__()
-        self.voxel = voxel
+        if voxel is not None:
+            self.voxel = voxel
+        else:
+            self.voxel = np.zeros((9,11,11))
+            self.voxel[3,3,3] = 1
 
     def make_task(self):
 
