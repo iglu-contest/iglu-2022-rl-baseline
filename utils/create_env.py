@@ -4,7 +4,7 @@ import numpy as np
 from gym.spaces import Box
 from sample_factory.algorithms.utils.multi_agent_wrapper import MultiAgentWrapper
 
-from wrappers.common_wrappers import VectorObservationWrapper, \
+from wrappers.common_wrappers import VisualbservationWrapper, \
     JumpAfterPlace
 from wrappers.loggers import SuccessRateFullFigure
 from wrappers.multitask import TargetGenerator, SubtaskGenerator
@@ -42,7 +42,7 @@ def make_iglu(*args, **kwargs):
     figure_generator = RandomFigure
     env = TargetGenerator(env, fig_generator=figure_generator)
     env = SubtaskGenerator(env)
-    env = VectorObservationWrapper(env)
+    env = VisualbservationWrapper(env)
 
     env = JumpAfterPlace(env)
     env = RangetRewardFilledField(env)

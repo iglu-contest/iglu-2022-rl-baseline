@@ -30,16 +30,17 @@ class ResnetEncoderWithTarget(EncoderBase):
         input_ch_targ = target_shape.obs[0]
         target_conf = [[64, 3]]
 
-        grid_shape = get_obs_shape(obs_space['grid'])
+        grid_shape = get_obs_shape(obs_space['obs'])
         input_ch_grid = grid_shape.obs[0]
-        grid_conf = [[64, 3]]
-        ### Grid embedding
+        grid_conf = [[64, 2], [64, 2], [64, 2]]
+        
+        ### Obs embedding
         self.conv_grid = grid_stucture_encoder(input_ch_grid, grid_conf, cfg, self.timing)
         ### Target embedding
         self.conv_target = grid_stucture_encoder(input_ch_targ, target_conf, cfg, self.timing)
 
         self.inventory_compass_emb = nn.Sequential(
-            nn.Linear(11, cfg.hidden_size),
+            nn.Linear(7, cfg.hidden_size),
             nn.ReLU(),
             nn.Linear(cfg.hidden_size, cfg.hidden_size),
             nn.ReLU(),
@@ -51,28 +52,30 @@ class ResnetEncoderWithTarget(EncoderBase):
 
     def forward(self, obs_dict):
         # values for normalization
-        abs_max_obs = np.array([10, 8, 10, 180, 360])  # x, y, z, yaw, pitch
-        true_max_obs = np.array([5, 0, 5, 90, 0])  # x, y, z, yaw, pitch
+       # abs_max_obs = np.array([10, 8, 10, 180, 360])  # x, y, z, yaw, pitch
+      #  true_max_obs = np.array([5, 0, 5, 90, 0])  # x, y, z, yaw, pitch
+        
+        max_compass_val = 360
+        abs_compass_val = 180
         max_inventory_val = 20
+        max_obs_value = 255
 
-        abs_max_obs = torch.from_numpy(abs_max_obs).cuda()
-        true_max_obs = torch.from_numpy(true_max_obs).cuda()
+       # abs_max_obs = torch.from_numpy(abs_max_obs).cuda()
+      #  true_max_obs = torch.from_numpy(true_max_obs).cuda()
 
         inventory_compass = torch.cat(
-            [obs_dict['inventory'] / max_inventory_val, (obs_dict['agentPos'] + true_max_obs) / abs_max_obs], -1)
+            [obs_dict['inventory'] / max_inventory_val, (obs_dict['compass']+abs_compass_val)/max_compass_val], -1)
         inv_comp_emb = self.inventory_compass_emb(inventory_compass)
 
         target = torch.zeros_like((obs_dict['target_grid']))
         target[obs_dict['target_grid'] > 0] = 1  # put 1 if task is build block
         target[obs_dict['target_grid'] < 0] = -1  # put -1 if task is remove block
-
         tg = self.conv_target(target)
         tg_embed = tg.contiguous().view(-1, self.conv_target_out_size)
 
-        grid = torch.zeros_like((obs_dict['grid']))
-        grid[obs_dict['grid'] != 0] = 1  # put 1 on blocks place (make blocks same color)
-
-        grid = self.conv_grid(grid) - 0.5
+        grid = obs_dict['obs']/max_obs_value
+        
+        grid = self.conv_grid(grid)
         grid_embed = grid.contiguous().view(-1, self.conv_grid_out_size)
 
         head_input = torch.cat([inv_comp_emb, tg_embed, grid_embed], -1)

@@ -160,26 +160,22 @@ class ColorWrapper(ActionsWrapper):
         yield action
 
 
-class VectorObservationWrapper(ObsWrapper):
+class VisualbservationWrapper(ObsWrapper):
     def __init__(self, env):
         super().__init__(env)
 
         if 'pov' in self.env.observation_space.keys():
             self.observation_space = gym.spaces.Dict({
-                'agentPos': gym.spaces.Box(low=-5000.0, high=5000.0, shape=(5,)),
-                'grid': gym.spaces.Box(low=0.0, high=6.0, shape=(9, 11, 11)),
+                'compass':  gym.spaces.Box(low=-180, high=180, shape=(1,)),
                 'inventory': gym.spaces.Box(low=0.0, high=20.0, shape=(6,)),
                 'target_grid': gym.spaces.Box(low=0.0, high=6.0, shape=(9, 11, 11)),
+                'grid': gym.spaces.Box(low=0.0, high=6.0, shape=(9, 11, 11)),
                 'obs': gym.spaces.Box(low=0, high=1, shape=(self.env.render_size[0], self.env.render_size[0], 3),
-                                      dtype=np.float32)
+                                      dtype=np.float32),
+                'agentPos': gym.spaces.Box(low=-5000.0, high=5000.0, shape=(5,))
             })
         else:
-            self.observation_space = gym.spaces.Dict({
-                'agentPos': gym.spaces.Box(low=-5000.0, high=5000.0, shape=(5,)),
-                'grid': gym.spaces.Box(low=0.0, high=6.0, shape=(9, 11, 11)),
-                'inventory': gym.spaces.Box(low=0.0, high=20.0, shape=(6,)),
-                'target_grid': gym.spaces.Box(low=0.0, high=6.0, shape=(9, 11, 11))
-            })
+            raise Exception("It is visual wprapper! Obs not found!")
 
     def observation(self, obs, reward=None, done=None, info=None):
         if IGLU_ENABLE_LOG == '1':
@@ -209,18 +205,14 @@ class VectorObservationWrapper(ObsWrapper):
         if 'pov' in self.env.observation_space.keys():
             return {
                 'agentPos': obs['agentPos'],
-                'grid': obs['grid'],
+                'compass': obs['compass'],
                 'inventory': obs['inventory'],
                 'target_grid': target_grid,
+                'grid': obs['grid'],
                 'obs': obs['pov']
             }
         else:
-            return {
-                'agentPos': obs['agentPos'],
-                'grid': obs['grid'],
-                'inventory': obs['inventory'],
-                'target_grid': target_grid,
-            }
+            raise Exception("It is visual wprapper! Obs not found!")
 
     def check_component(self, arr, name, low, hi):
         if (arr < low).any():
