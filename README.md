@@ -1,5 +1,7 @@
 # SampleFactory APPO baseline for Iglu
 
+*THE CODE IS IN THE WIP STATUS. PLEASE STAY TUNED FOR THE UPDATES. WE EXPECT TO RELEASE A WORKING BASELINE BY THE END OF THE WARM-UP ROUND.*
+
 ## Idea
 Training an agent to build any language-defined structure is a challenging task. To overcome this, we have developed
 a multitask hierarchical builder (MHB) with three modules: task generator (NLP part), subtask generator (heuristic
