@@ -9,6 +9,7 @@ experiment_settings:
   hidden_size: 512
 
 async_ppo:
+  actor_worker_gpus: [1]
   rnn_type: gru
   experiment_summaries_interval: 20
   ppo_epochs: 1
@@ -21,7 +22,6 @@ async_ppo:
   
   num_workers: 32
   num_envs_per_worker: 16
-  sampler_worker_gpus: 0,1
   
 environment:
   name: 'IGLUSilentBuilder-v0'

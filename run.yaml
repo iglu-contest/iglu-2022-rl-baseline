@@ -1,17 +1,17 @@
 container:
-  image: "iglu-fast-baseline:latest"
-  command: "python3 main.py"
-  #  command: bash
-  tty: True
-  environment:
-    - "MINERL_HEADLESS='1'"
-    - "WANDB_API_KEY=<YOU API KEY HERE>"
-    - "OMP_NUM_THREADS=1"
-    - "MKL_NUM_THREADS=1"
-    - "NVIDIA_VISIBLE_DEVICES=0"
+ image: "iglu-fast-baseline:latest"
+ command: "python main.py --config_path iglu_baseline.yaml"
+  # command: bash
+ tty: True
+ environment:
+  - "OMP_NUM_THREADS=1"
+  - "MKL_NUM_THREADS=1"
+  - "NVIDIA_VISIBLE_DEVICES=0,1"
 code:
   folder: "."
-
+  forward_environment_keys: ["WANDB_API_KEY"]
+  ignore: [".git"]
+ 
 host_config:
   runtime: nvidia
   shm_size: 4g
