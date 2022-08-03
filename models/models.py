@@ -22,6 +22,20 @@ def grid_stucture_encoder(input_channel, block_config, net_config, timing):
     grid_encoder = nn.Sequential(*layers)
     return grid_encoder
 
+def obs_stucture_encoder(input_channel, block_config, net_config, timing):
+    layers = []
+    for i, (out_channels, res_blocks) in enumerate(block_config):
+        layers.extend([
+            nn.Conv2d(input_channel, out_channels, kernel_size=3, stride=1, padding=1),  # padding SAME
+             nn.MaxPool2d(kernel_size=3, stride=2, padding=1) #MAXPOOL
+        ])
+        for j in range(res_blocks):
+            layers.append(ResBlock(net_config, out_channels, out_channels, timing))
+        input_ch_grid = out_channels
+    layers.append(nonlinearity(net_config))
+    grid_encoder = nn.Sequential(*layers)
+    return grid_encoder
+
 
 class ResnetEncoderWithTarget(EncoderBase):
     def __init__(self, cfg, obs_space, timing):
@@ -35,7 +49,7 @@ class ResnetEncoderWithTarget(EncoderBase):
         grid_conf = [[64, 2], [64, 2], [64, 2]]
         
         ### Obs embedding
-        self.conv_grid = grid_stucture_encoder(input_ch_grid, grid_conf, cfg, self.timing)
+        self.conv_grid = obs_stucture_encoder(input_ch_grid, grid_conf, cfg, self.timing)
         ### Target embedding
         self.conv_target = grid_stucture_encoder(input_ch_targ, target_conf, cfg, self.timing)
 

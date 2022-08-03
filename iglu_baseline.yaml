@@ -21,6 +21,7 @@ async_ppo:
   
   num_workers: 32
   num_envs_per_worker: 16
-
+  sampler_worker_gpus: 0,1
+  
 environment:
   name: 'IGLUSilentBuilder-v0'
