@@ -1,4 +1,4 @@
-name: iglu-fast-vector
+name: iglu-fast-visual
 
 global_settings:
   use_wandb: True
@@ -16,9 +16,6 @@ async_ppo:
   batch_size: 1024
   use_rnn: True
   max_grad_norm: 0.0
-  pbt_target_objective: SuccessRate
-  pbt_optimize_batch_size: True
-  with_pbt: True
   
   num_workers: 32
   num_envs_per_worker: 16
