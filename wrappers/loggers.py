@@ -227,14 +227,16 @@ class StatisticsLogger(Wrapper):
     
 class Statistics(Wrapper):
     def __init__(self, env):
+       # self.env.colums = None
         super().__init__(env)
         self.colums = []
         self.statistics = dict()
         
 class SuccessRateFullFigure(gym.Wrapper):
     def __init__(self, env):
+       # self.env.colums = None
         super().__init__(env)
-        if 'CoplitedRate' not in self.env.colums:
+        if self.env.colums and 'CoplitedRate' not in self.env.colums:
             self.env.colums.append('CoplitedRate')
             self.statistics['CoplitedRate'] = 0
     def step(self, action):          
@@ -243,26 +245,30 @@ class SuccessRateFullFigure(gym.Wrapper):
         if done:
             if info['done'] == 'full':
                 info['episode_extra_stats']['CoplitedRate'] = 1
-                self.env.statistics['CoplitedRate'] = 1
+                if self.env.colums:
+                    self.env.statistics['CoplitedRate'] = 1
             else:
+                
                 info['episode_extra_stats']['CoplitedRate'] = 0
-                self.env.statistics['CoplitedRate'] = 0
+                if self.env.colums:
+                    self.env.statistics['CoplitedRate'] = 0
         return observation, reward, done, info
 
 
 class R1_score(gym.Wrapper):
     def __init__(self, env):
+        #self.env.colums = None
         super().__init__(env)
-        if 'R1_score' not in self.env.colums:
+        if self.env.colums and 'R1_score' not in self.env.colums:
             self.env.colums.append('R1_score')
             self.statistics['R1_score'] = 0
-        if 'maximal_intersection' not in self.env.colums:
+        if self.env.colums and 'maximal_intersection' not in self.env.colums:
             self.env.colums.append('maximal_intersection')
             self.statistics['maximal_intersection'] = 0
-        if 'target_grid_size' not in self.env.colums:
+        if self.env.colums and'target_grid_size' not in self.env.colums:
             self.env.colums.append('target_grid_size')
             self.statistics['target_grid_size'] = 0
-        if 'current_grid_size' not in self.env.colums:
+        if self.env.colums and 'current_grid_size' not in self.env.colums:
             self.env.colums.append('current_grid_size')
             self.statistics['current_grid_size'] = 0
             
@@ -291,13 +297,13 @@ class R1_score(gym.Wrapper):
                 curr_f1 = 1
                 maximal_intersection = target_grid_size
                 current_grid_size = target_grid_size
-
-            info['episode_extra_stats']['R1_score'] = curr_f1
-            self.env.statistics['R1_score'] = curr_f1
-            info['episode_extra_stats']['maximal_intersection'] = maximal_intersection
-            self.env.statistics['maximal_intersection'] = maximal_intersection
-            info['episode_extra_stats']['target_grid_size'] = target_grid_size
-            self.env.statistics['target_grid_size'] = target_grid_size
-            info['episode_extra_stats']['current_grid_size'] = current_grid_size
-            self.env.statistics['current_grid_size'] = current_grid_size
+            if self.env.colums:
+                info['episode_extra_stats']['R1_score'] = curr_f1
+                self.env.statistics['R1_score'] = curr_f1
+                info['episode_extra_stats']['maximal_intersection'] = maximal_intersection
+                self.env.statistics['maximal_intersection'] = maximal_intersection
+                info['episode_extra_stats']['target_grid_size'] = target_grid_size
+                self.env.statistics['target_grid_size'] = target_grid_size
+                info['episode_extra_stats']['current_grid_size'] = current_grid_size
+                self.env.statistics['current_grid_size'] = current_grid_size
         return observation, reward, done, info

@@ -165,7 +165,7 @@ class ColorWrapper(ActionsWrapper):
 class VisualObservationWrapper(ObsWrapper):
     def __init__(self, env):
         super().__init__(env)
-
+        self.colums = None
         if 'pov' in self.env.observation_space.keys():
             self.observation_space = gym.spaces.Dict({
                 'compass':  gym.spaces.Box(low=-180, high=180, shape=(1,)),

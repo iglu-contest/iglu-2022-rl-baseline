@@ -34,7 +34,8 @@ class TargetGenerator(gym.Wrapper):
     def reset(self):
         X = []
         self.task_id +=1
-        self.task_id %= len(self.tasks)
+        if self.tasks:
+            self.task_id %= len(self.tasks)
         if self.tasks is not None:
             self.set_task_in_generator()
         self.figure.make_task()
