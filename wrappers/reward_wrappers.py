@@ -57,7 +57,7 @@ def calc_new_blocks(current_grid, last_grid):
 
     new_blocks = np.where(grid != relief)
     if len(new_blocks[0]) > 1:
-        raise Exception(f"""
+         raise Exception (f"""
                Bulded more then one block! Logical error!!
                grid z_x_y- {np.where(current_grid != 0)}
                relief z_x_y- {np.where(last_grid != 0)}
@@ -83,7 +83,9 @@ class RangetRewardFilledField(RangetReward):
 
     def step(self, action):
         obs, reward, done, info = super().step(action)
-
+        
+       
+       # print("from env: ", action)
         if done:
             info['done'] = 'len_done_%s' % self.steps
         info['done'] = 'len_done_%s' % self.steps
@@ -98,6 +100,15 @@ class RangetRewardFilledField(RangetReward):
         ### Reward calculation
         reward = 0
         task = np.sum(self.env.task.target_grid)  # if < 0 - task if remove, else task is build
+        
+        ### Move or rebove block? 
+        if 5 < action < 12 or action == 17:
+            do = 1
+            full = self.env.one_round_reset(new_blocks, do)
+        elif action == 16:
+            do = 0
+            full = self.env.one_round_reset(new_blocks, do)
+            
         if len(new_blocks[0]) >= 1:
             grid_block_count = len(np.where(grid != 0)[0])
             relief_block_count = len(np.where(relief != 0)[0])
@@ -109,10 +120,8 @@ class RangetRewardFilledField(RangetReward):
             else:
                 reward = self.check_goal_closeness(info, broi=new_blocks, remove=task < 0)  # иначе
 
-            if task < 0:
-                do = 0
-            elif task > 0:
-                do = int(np.sum(self.env.task.target_grid))
+            
+           # print(action)
 
             ### Add reward for block under agent
             x_agent, z_agent, y_agent = obs['agentPos'][:3]
@@ -128,7 +137,8 @@ class RangetRewardFilledField(RangetReward):
                             y_last_blcok - y_agent) >= 0 and z_agent >= z_last_block:
                         #     raise Exception("WRONG!")
                         reward += 0.5
-                full = self.env.one_round_reset(new_blocks, do)
+                #full = self.env.one_round_reset(new_blocks, do)
+                #print("Success")
                 info['done'] = 'right_move'
                 if full:
                     info['done'] = 'full'
@@ -136,8 +146,12 @@ class RangetRewardFilledField(RangetReward):
 
             if reward < 1:
                 info['done'] = 'mistake_%s' % self.steps
-                done = True
+               # done = True
+               # full = self.env.one_round_reset(new_blocks, do)
                 self.env.update_field(new_blocks, do)
+                if full:
+                    info['done'] = 'full'
+                    done = True
             if done:
                 info['episode_extra_stats']['SuccessRate'] = self.SR / self.tasks_count
             self.tasks_count += 1

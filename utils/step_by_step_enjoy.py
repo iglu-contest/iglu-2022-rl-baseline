@@ -4,8 +4,9 @@ import os
 from os.path import join
 
 import torch
-
-from utils.config_validation import Experiment
+sys.path.append("./utils/")
+sys.path.append("./models/")
+from config_validation import Experiment
 from argparse import Namespace
 from pathlib import Path
 
@@ -22,8 +23,9 @@ from sample_factory.envs.create_env import create_env
 from sample_factory.utils.utils import log, AttrDict
 from sample_factory.algorithms.utils.arguments import parse_args, load_from_checkpoint
 
-from models.models import ResnetEncoderWithTarget
+from models import ResnetEncoderWithTarget
 from enjoy import make_iglu
+
 
 def register_custom_components():
     global_env_registry().register_env(
@@ -47,7 +49,7 @@ def validate_config(config):
 class APPOHolder:
     def __init__(self, algo_cfg):
         self.cfg = algo_cfg
-
+        self.cfg.env_frameskip = 1
         path = algo_cfg.path_to_weights
         device = algo_cfg.device
         register_custom_components()
@@ -74,6 +76,9 @@ class APPOHolder:
         # actor_critic.share_memory()
         actor_critic.model_to_device(device)
         policy_id = algo_cfg.policy_index
+        print("HELLO")
+        print()
+        print(policy_id)
         checkpoints = join(path, f'checkpoint_p{policy_id}')
         checkpoints = LearnerWorker.get_checkpoints(checkpoints)
         checkpoint_dict = LearnerWorker.load_checkpoint(checkpoints, device)
@@ -96,12 +101,19 @@ class APPOHolder:
         if self.rnn_states is None or len(self.rnn_states) != len(observations):
             self.rnn_states = torch.zeros([len(observations), get_hidden_size(self.cfg)], dtype=torch.float32,
                                           device=self.device)
+            print("aboba")
 
         with torch.no_grad():
             obs_torch = AttrDict(transform_dict_observations(observations))
             for key, x in obs_torch.items():
                 obs_torch[key] = torch.from_numpy(x).to(self.device).float()
-            policy_outputs = self.ppo(obs_torch, self.rnn_states, with_action_distribution=True)
+            policy_outputs = self.ppo(obs_torch, self.rnn_states, with_action_distribution=False)
+            act = policy_outputs.actions[0]
+#             if ((act > 5) and (act < 12)):
+#                 self.rnn_states = torch.zeros([len(observations), get_hidden_size(self.cfg)], dtype=torch.float32,
+#                                           device=self.device)
+#                # print('clear')
+#             else:
             self.rnn_states = policy_outputs.rnn_states
             actions = policy_outputs.actions
 
@@ -118,14 +130,14 @@ class APPOHolder:
 
 def download_weights():
     print("Downloading weights...")
-    directory = ('./train_dir/0005/force_envs_single_thread=False;num_envs_per_worker=1;num_workers=10/' +
+    directory = ('./train_dir/0001/force_envs_single_thread=False;num_envs_per_worker=1;num_workers=10/' +
              'TreeChopBaseline-iglu/checkpoint_p0/')
     if not os.path.exists(directory):
         os.makedirs(directory)
     run = wandb.init()
     artifact = run.use_artifact('babycar27/iglu-checkpoints/iglu-checkpoints:v0', type='pth')
     artifact_dir = artifact.download(
-        root='./train_dir/0005/force_envs_single_thread=False;num_envs_per_worker=1;num_workers=10/' +
+        root='./train_dir/0001/force_envs_single_thread=False;num_envs_per_worker=1;num_workers=10/' +
              'TreeChopBaseline-iglu/checkpoint_p0/')
     print("Weights path - ", artifact_dir)
 
@@ -134,11 +146,11 @@ def make_agent():
     env = make_iglu()
     cfg = parse_args(argv=['--algo=APPO', '--env=IGLUSilentBuilder-v0', '--experiment=TreeChopBaseline-iglu',
                            '--experiments_root=force_envs_single_thread=False;num_envs_per_worker=1;num_workers=10',
-                           '--train_dir=./train_dir/0005'], evaluation=True)
+                           '--train_dir=./train_dir/0001'], evaluation=True)
     cfg = load_from_checkpoint(cfg)
 
     cfg.setdefault("path_to_weights",
-                   "./train_dir/0005/force_envs_single_thread=False;num_envs_per_worker=1;num_workers=10/TreeChopBaseline-iglu")
+                   "./train_dir/0001/force_envs_single_thread=False;num_envs_per_worker=1;num_workers=10/TreeChopBaseline-iglu")
     return APPOHolder(cfg)
 if __name__ == "__main__":
     download_weights()
@@ -147,9 +159,9 @@ if __name__ == "__main__":
     env = make_iglu()
     cfg = parse_args(argv=['--algo=APPO', '--env=IGLUSilentBuilder-v0', '--experiment=TreeChopBaseline-iglu',
                            '--experiments_root=force_envs_single_thread=False;num_envs_per_worker=1;num_workers=10',
-                           '--train_dir=./train_dir/0005'], evaluation=True)
+                           '--train_dir=./train_dir/0001'], evaluation=True)
     cfg = load_from_checkpoint(cfg)
 
-    cfg.setdefault("path_to_weights", "./train_dir/0005/force_envs_single_thread=False;num_envs_per_worker=1;num_workers=10/TreeChopBaseline-iglu")
+    cfg.setdefault("path_to_weights", "./train_dir/0001/force_envs_single_thread=False;num_envs_per_worker=1;num_workers=10/TreeChopBaseline-iglu")
 
     APPOHolder(cfg)

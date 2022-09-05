@@ -22,24 +22,39 @@ class MultitaskFormat(gym.Wrapper):
 
 
 class TargetGenerator(gym.Wrapper):
-    def __init__(self, env, make_holes=False, make_colors=False, fig_generator=RandomFigure):
+    def __init__(self, env, make_holes=False, make_colors=False, fig_generator=RandomFigure, tasks = None):
         super().__init__(env)
         self.make_holes = make_holes
         self.make_colors = make_colors
         self.figure = fig_generator()
+        self.fig_generator = fig_generator
+        self.task_id = 0
+        self.tasks = tasks
 
     def reset(self):
         X = []
+        self.task_id +=1
+        self.task_id %= len(self.tasks)
+        if self.tasks is not None:
+            self.set_task_in_generator()
         self.figure.make_task()
         if isinstance(self.figure, RandomFigure):
-            min_block_in_fig = 10
+            min_block_in_fig = 4
         else:
             min_block_in_fig = 0
         while len(X) <= min_block_in_fig:
+           # print("rebuild")
             self.figure.make_task()
             relief = self.figure.figure_parametrs['relief']
             X, Y = np.where(relief != 0)
+        
         return super().reset()
+    
+    def set_task_in_generator(self):
+       # print("Update generator")
+        name = list(self.tasks.keys())[self.task_id]
+        figure = list(self.tasks.values())[self.task_id]
+        self.figure = self.fig_generator(figure = figure, name = name)                
 
 
 class SubtaskGenerator(gym.Wrapper):
@@ -51,7 +66,7 @@ class SubtaskGenerator(gym.Wrapper):
         self.old_grid = np.zeros((9, 11, 11))
         self.preinited_grid = None
         self.old_preinited_grid = None
-        self.prebuilds_percent = 0.7
+        self.prebuilds_percent = 0.9
         self.last_agent_rotation = (0, 0)
         self.last_target = None
         self.color_map = None
@@ -98,8 +113,9 @@ class SubtaskGenerator(gym.Wrapper):
         starting_grid, prebuilded = self.init_relief(size)
         try:
             task = next(self.generator)
-        except:
-            raise Exception(f"""Subtasks are over! 
+           # print(np.where(task[1]!=0))
+        except Exception as e:
+            raise Exception(f"""{e} Subtasks are over! 
                             Count of prebuilds:
                             {prebuilded}
                             Count of blocks:
@@ -115,6 +131,7 @@ class SubtaskGenerator(gym.Wrapper):
         return starting_grid, initial_position, custom_grid
 
     def update_field(self, new_block=None, do=1):
+      #  print(new_block, do)
         self.old_grid = self.current_grid[:, :, :]
         self.current_grid[new_block] = do
         self.new_blocks.append((*new_block, do))
@@ -124,10 +141,13 @@ class SubtaskGenerator(gym.Wrapper):
         self.steps = 0
         try:
             coord, task = next(self.generator)
+         #   print(coord)
         except StopIteration:
             return True
-        self.update_field(new_block, do=do)
+        if new_block is not None:
+            self.update_field(new_block, do=do)
         self.env.task = Task("", task)
+       # print("task - ", np.where(task!=0))
         self.agent_win = False
         return False
 
@@ -147,6 +167,7 @@ class SubtaskGenerator(gym.Wrapper):
         if self.old_preinited_grid is None:
             self.old_preinited_grid = self.preinited_grid
         self.env.task = Task("", task)
+        #print("task - ", np.where(task!=0))
         return obs
 
     def step(self, action):
@@ -156,4 +177,7 @@ class SubtaskGenerator(gym.Wrapper):
         self.last_agent_rotation = obs['agentPos'][3:]
         if self.steps >= self.steps_to_task:
             done = True
+        # Add targets to info
+        info['target_voxel'] = self.env.figure.figure_parametrs['figure']
+        info['current_target'] = self.env.task.target_grid
         return obs, reward, done, info

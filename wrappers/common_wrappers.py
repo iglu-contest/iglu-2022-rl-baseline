@@ -139,6 +139,8 @@ class JumpAfterPlace(ActionsWrapper):
             yield action
             yield 5
             yield 5
+            
+           # yield 5
         else:
             yield action
 
@@ -160,7 +162,7 @@ class ColorWrapper(ActionsWrapper):
         yield action
 
 
-class VisualbservationWrapper(ObsWrapper):
+class VisualObservationWrapper(ObsWrapper):
     def __init__(self, env):
         super().__init__(env)
 
