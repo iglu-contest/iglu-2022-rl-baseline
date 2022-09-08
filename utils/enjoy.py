@@ -71,7 +71,7 @@ def make_iglu(*args, **kwargs):
     figure_generator.row_figure[0, 1:4, 1:4] = 1
     figure_generator.generator_name = '[0, 1:4, 1:4]'
     
-    tasks = castom_tasks()
+    tasks = tasks_from_database()
     env = TargetGenerator(env, fig_generator=figure_generator,  tasks = tasks)
     env = SubtaskGenerator(env)
     env = VisualObservationWrapper(env)
