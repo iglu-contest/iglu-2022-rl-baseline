@@ -3,7 +3,8 @@ import numpy as np
 from wrappers.artist import random_relief_map, modify, figure_to_3drelief
 import sys
 sys.path.append("../")
-from nlp_model.agent import DefArgs, init_models,predict_voxel
+#from nlp_model.agent import DefArgs, init_models,predict_voxel
+
 
 
 def target_to_subtasks(figure):
@@ -12,7 +13,6 @@ def target_to_subtasks(figure):
     targets_plane = figure.relief.astype(int)
     color_plane = figure.figure_parametrs['color']
     X, Y = np.where(figure.relief != 0)
-   # print(X,Y)
     addtional_tower_remote = (2, 2)
     #generate main blocks
     for x, y in zip(X, Y):
@@ -31,34 +31,25 @@ def target_to_subtasks(figure):
             last_height = 0
             z = 0
             # generate additional blocks
-            #print("Holes^")
-            #print(zh[holes_in_xy])
+            print("Holes^")
+            print(zh[holes_in_xy])
             for height in zh[holes_in_xy]:
-               # print(height)
-                for z in range(0, height):
-                   # print("height" , height)
+                for z in range(last_height, height):
                     custom_grid = np.zeros((9, 11, 11))
                     custom_grid[z, x + addtional_tower_remote[0], y + addtional_tower_remote[1]] = 1
                     additional_blocks.append((z, x + addtional_tower_remote[0], y + addtional_tower_remote[1]))
-                   # print("add")
-                   # print(z, x + addtional_tower_remote[0], y + addtional_tower_remote[1])
                     yield (x - 5 + addtional_tower_remote[0], z - 1, y - 5 + addtional_tower_remote[1], 1), custom_grid
                 custom_grid = np.zeros((9, 11, 11))
                 custom_grid[height, x, y] = -1
                 last_height = height
                 #make window
-                #print("wind")
-                #print(height - 1, x , y, -1)
                 yield (x - 5, height - 1, y - 5, -1), custom_grid
-                #remove additional blocks
-                if len(additional_blocks) > 0:
-                    for z_, x_, y_ in additional_blocks[::-1]:
-                        custom_grid = np.zeros((9, 11, 11))
-                        custom_grid[z_, x_, y_] = -1
-                      #  print("remove")
-                       # print(z_ ,x_, y_ , -1)
-                        yield (x_ - 5, z_ - 1, y_ - 5, -1), custom_grid
-                    additional_blocks = []
+            #remove additional blocks
+            if len(additional_blocks) > 0:
+                for z, x, y in additional_blocks[::-1]:
+                    custom_grid = np.zeros((9, 11, 11))
+                    custom_grid[z, x, y] = -1
+                    yield (x - 5, z - 1, y - 5, -1), custom_grid
                     
 
 
@@ -119,33 +110,6 @@ class Figure():
         else:
             raise Exception("The figure is not initialized! Use 'make_task' method to do it!")
         return relief, holes, full_figure
-    
-    def step(self, action):
-        obs, reward, done, info = env.step(action)
-        info['generator_name'] = self.generator_name
-        return obs, reward, done, info
-    
-
-class DialogueFigure(Figure):
-    def __init__(self, *args):
-        super().__init__(*args)
-        self.args = DefArgs()    
-        configs = init_models(self.args)
-        self.model, self.tokenizer, self.history, self.stats, self.voxel = configs    	
-
-    def make_task(self, dialogue = 'put three grenn blocks on the'):
-        _,right_voxel,_ = predict_voxel(dialogue, self.model,self.tokenizer, self.history, self.voxel, self.args)        
-        right_voxel_ones = np.ones_like(right_voxel)
-        right_voxel_ones[:,:,:] = right_voxel[:, :, :]
-        right_voxel_ones[right_voxel > 0] = 1
-
-        figure = self.to_multitask_format(right_voxel)
-        self.figure_parametrs['name'] = dialogue
-        self.figure_parametrs['original'] = right_voxel
-        self.figure_parametrs['color'] = right_voxel
-        self.figure_parametrs['relief'] = self.relief
-        return figure
-
 
 class CustomFigure(Figure):
     row_figure = np.zeros((9,11,11))

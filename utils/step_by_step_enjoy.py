@@ -23,7 +23,7 @@ from sample_factory.envs.create_env import create_env
 from sample_factory.utils.utils import log, AttrDict
 from sample_factory.algorithms.utils.arguments import parse_args, load_from_checkpoint
 
-from models import ResnetEncoderWithTarget
+from model import ResnetEncoderWithTarget
 from enjoy import make_iglu
 
 
@@ -76,9 +76,7 @@ class APPOHolder:
         # actor_critic.share_memory()
         actor_critic.model_to_device(device)
         policy_id = algo_cfg.policy_index
-        print("HELLO")
-        print()
-        print(policy_id)
+
         checkpoints = join(path, f'checkpoint_p{policy_id}')
         checkpoints = LearnerWorker.get_checkpoints(checkpoints)
         checkpoint_dict = LearnerWorker.load_checkpoint(checkpoints, device)
@@ -101,19 +99,12 @@ class APPOHolder:
         if self.rnn_states is None or len(self.rnn_states) != len(observations):
             self.rnn_states = torch.zeros([len(observations), get_hidden_size(self.cfg)], dtype=torch.float32,
                                           device=self.device)
-            print("aboba")
-
         with torch.no_grad():
             obs_torch = AttrDict(transform_dict_observations(observations))
             for key, x in obs_torch.items():
                 obs_torch[key] = torch.from_numpy(x).to(self.device).float()
             policy_outputs = self.ppo(obs_torch, self.rnn_states, with_action_distribution=False)
             act = policy_outputs.actions[0]
-#             if ((act > 5) and (act < 12)):
-#                 self.rnn_states = torch.zeros([len(observations), get_hidden_size(self.cfg)], dtype=torch.float32,
-#                                           device=self.device)
-#                # print('clear')
-#             else:
             self.rnn_states = policy_outputs.rnn_states
             actions = policy_outputs.actions
 

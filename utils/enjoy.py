@@ -9,27 +9,18 @@ from sample_factory.algorithms.utils.arguments import parse_args
 from sample_factory.envs.env_registry import global_env_registry
 
 sys.path.append("./")
+#sys.path.append("../")
+import os
+cwd = os.getcwd()
 
-if True:
-    sys.path.append("./utils/")
-    sys.path.append("./models/")
-    sys.path.append("./wrappers/")
-    from models import ResnetEncoderWithTarget
-    from common_wrappers import VisualObservationWrapper, \
-        ColorWrapper, JumpAfterPlace
-    from loggers import VideoLogger, Logger, R1_score, SuccessRateFullFigure, Statistics,StatisticsLogger
-    from multitask import SubtaskGenerator, TargetGenerator
-    from reward_wrappers import RangetRewardFilledField
-    from target_generator import  RandomFigure, CustomFigure, DialogueFigure
-else:
-    from models.models import ResnetEncoderWithTarget
-    from wrappers.common_wrappers import VisualObservationWrapper, \
-        ColorWrapper, JumpAfterPlace
-    from wrappers.loggers import VideoLogger, Logger, R1_score, SuccessRateFullFigure, Statistics,StatisticsLogger
-    from wrappers.multitask import SubtaskGenerator, TargetGenerator
-    from wrappers.reward_wrappers import RangetRewardFilledField
-    
-    from wrappers.target_generator import  RandomFigure, CustomFigure, DialogueFigure
+from models.model import ResnetEncoderWithTarget
+from wrappers.common_wrappers import VisualObservationWrapper, \
+    ColorWrapper, JumpAfterPlace
+from wrappers.loggers import VideoLogger, Logger, R1_score, SuccessRateFullFigure, Statistics,StatisticsLogger
+from wrappers.multitask import SubtaskGenerator, TargetGenerator
+from wrappers.reward_wrappers import RangetRewardFilledField
+
+from wrappers.target_generator import  RandomFigure, CustomFigure
 import gym
 
 
@@ -38,35 +29,35 @@ def tasks_from_database():
     targets = np.load('data/augmented_targets.npy')
     
     return dict(zip(names, targets))
-    
+ 
 def castom_tasks():
     tasks = dict()   
     
-#     t1 = np.zeros((9,11,11))
-#     t1[0, 1:4, 1:4] = 1
-#     tasks['[0, 1:4, 1:4]'] = t1
+    t1 = np.zeros((9,11,11))
+    t1[0, 1:4, 1:4] = 1
+    tasks['[0, 1:4, 1:4]'] = t1
     
-#     t2 = np.zeros((9,11,11))
-#     t2[0:2, 1:4, 1:4] = 1
-#     tasks['[0:2, 1:4, 1:4]'] = t2
+    t2 = np.zeros((9,11,11))
+    t2[0:2, 1:4, 1:4] = 1
+    tasks['[0:2, 1:4, 1:4]'] = t2
     
     t3 = np.zeros((9,11,11))
-    t3[0:7, 4, 4] = 1
+    t3[0:5, 4, 4] = 1
     t3[1, 4, 4] = 0
     t3[3, 4, 4] = 0
     t3[0, 8, 7] = 1
     tasks['[0:7, 4, 4]'] = t3
     
-#     t4 = np.zeros((9,11,11))
-#     t4[0, 4:8, 4:8] = 1
-#     tasks['[0, 4:8, 4:8]'] = t4
+    t4 = np.zeros((9,11,11))
+    t4[0, 4:8, 4:8] = 1
+    tasks['[0, 4:8, 4:8]'] = t4
     
-#     t5 = np.zeros((9,11,11))
-#     t5[0:3, 8:10, 8:10] = 1
-#     tasks['[0:3, 8:10, 8:10]'] = t5
+    t5 = np.zeros((9,11,11))
+    t5[0:3, 8:10, 8:10] = 1
+    tasks['[0:3, 8:10, 8:10]'] = t5
     
     return tasks
-    
+
 def make_iglu(*args, **kwargs):
     custom_grid = np.ones((9, 11, 11))
     render = True
@@ -93,7 +84,7 @@ def make_iglu(*args, **kwargs):
     env = Statistics(env)
     env = R1_score(env)
     env = SuccessRateFullFigure(env)
-    env = StatisticsLogger(env, st_name = "custom_zoya_tasks.csv")
+    env = StatisticsLogger(env, st_name = "custom_step_by_step_tasks.csv")
     env = VideoLogger(env)
     env = Logger(env)
     return env
