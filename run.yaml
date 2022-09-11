@@ -5,13 +5,13 @@ container:
   tty: True
   environment:
     - "MINERL_HEADLESS='1'"
-    - "WANDB_API_KEY=<YOU API KEY HERE>"
     - "OMP_NUM_THREADS=1"
     - "MKL_NUM_THREADS=1"
     - "NVIDIA_VISIBLE_DEVICES=0"
 code:
   folder: "."
-
+  forward_environment_keys: ["WANDB_API_KEY"]
+  ignore: [".git"]
 host_config:
   runtime: nvidia
   shm_size: 4g
