@@ -4,8 +4,8 @@ import numpy as np
 from gym.spaces import Box
 from sample_factory.algorithms.utils.multi_agent_wrapper import MultiAgentWrapper
 
-from wrappers.common_wrappers import VisualbservationWrapper, \
-    JumpAfterPlace
+from wrappers.common_wrappers import VisualObservationWrapper, \
+    JumpAfterPlace, Discretization
 from wrappers.loggers import SuccessRateFullFigure
 from wrappers.multitask import TargetGenerator, SubtaskGenerator
 from wrappers.reward_wrappers import RangetRewardFilledField, Closeness
@@ -36,15 +36,16 @@ def make_iglu(*args, **kwargs):
     from gridworld.env import GridWorld
     from gridworld.tasks.task import Task
     custom_grid = np.ones((9, 11, 11))
-    env = GridWorld(render=True, select_and_place=True, discretize=True, max_steps=1000, fake=kwargs.get('fake', False))
+    env = GridWorld(render=True, select_and_place=True, discretize=True, action_space='flying', max_steps=1000,   fake=kwargs.get('fake', False))
     env.set_task(Task("", custom_grid, invariant=False))
 
     figure_generator = RandomFigure
+    
     env = TargetGenerator(env, fig_generator=figure_generator)
     env = SubtaskGenerator(env)
-    env = VisualbservationWrapper(env)
+    env = VisualObservationWrapper(env)
 
-    env = JumpAfterPlace(env)
+    env = Discretization(env)
     env = RangetRewardFilledField(env)
     env = Closeness(env)
 

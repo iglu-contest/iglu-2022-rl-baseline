@@ -73,8 +73,10 @@ class ObsWrapper(Wrapper):
 def flat_action_space(action_space):
     if action_space == 'human-level':
         return flat_human_level
+    elif action_space == 'flying':
+        return flat_flying
     else:
-        raise Exception("Action space not found!")
+        raise Exception("Acton space not found!")
 
 
 def no_op():
@@ -109,12 +111,79 @@ def flat_human_level(env, camera_delta=5):
     discretes.append(no_op())
     return discretes
 
+def no_op_f():
+    return OrderedDict([('movement',np.array([0., 0., 0.])),
+                         ('camera', np.array([0., 0.])),
+                        ('inventory', 0),
+                        ('placement', 0)])
+
+def flat_flying(env, camera_delta=5, step_delta = 1):
+    
+    discretes = [no_op_f()]
+    
+    ###### blocks
+    for color in range(0,7):
+        dummy = no_op_f()
+        dummy['inventory'] = color
+        discretes.append(dummy)
+              
+    ###### placement
+    for move in range(0,3):
+        dummy = no_op_f()
+        dummy['placement'] = move
+        discretes.append(dummy)
+                        
+    ###### camera                    
+    camera_x = no_op_f()
+    camera_x['camera'][0] = camera_delta
+    discretes.append(camera_x)
+                        
+    camera_x = no_op_f()
+    camera_x['camera'][0] = -camera_delta
+    discretes.append(camera_x)
+                        
+    camera_y = no_op_f()
+    camera_y['camera'][1] = camera_delta
+    discretes.append(camera_y)
+                        
+    camera_y = no_op_f()
+    camera_y['camera'][1] = -camera_delta
+    discretes.append(camera_y)
+    
+    #### movement
+    move_x = no_op_f()
+    move_x['movement'][0] = step_delta
+    discretes.append(move_x)
+                        
+    move_y = no_op_f()
+    move_y['movement'][0] = step_delta
+    discretes.append(move_y)
+                        
+    move_z = no_op_f()
+    move_z['movement'][0] = step_delta
+    discretes.append(move_z)
+                        
+    move_x = no_op_f()
+    move_x['movement'][0] = -step_delta
+    discretes.append(move_x)
+                        
+    move_y = no_op_f()
+    move_y['movement'][0] = -step_delta
+    discretes.append(move_y)
+                        
+    move_z = no_op_f()
+    move_z['movement'][0] = -step_delta
+    discretes.append(move_z)
+                        
+    return discretes
+
 
 class Discretization(ActionsWrapper):
-    def __init__(self, env, flatten):
+    def __init__(self, env, flatten = 'flying'):
         super().__init__(env)
         camera_delta = 5
-        self.discretes = flatten(env, camera_delta)
+        step_delta = 1
+        self.discretes = flat_flying(env, camera_delta, step_delta)
         self.action_space = gym.spaces.Discrete(len(self.discretes))
         self.old_action_space = env.action_space
         self.last_action = None
@@ -139,6 +208,8 @@ class JumpAfterPlace(ActionsWrapper):
             yield action
             yield 5
             yield 5
+            
+           # yield 5
         else:
             yield action
 
@@ -160,10 +231,10 @@ class ColorWrapper(ActionsWrapper):
         yield action
 
 
-class VisualbservationWrapper(ObsWrapper):
+class VisualObservationWrapper(ObsWrapper):
     def __init__(self, env):
         super().__init__(env)
-
+        self.colums = None
         if 'pov' in self.env.observation_space.keys():
             self.observation_space = gym.spaces.Dict({
                 'compass':  gym.spaces.Box(low=-180, high=180, shape=(1,)),
