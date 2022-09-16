@@ -7,6 +7,7 @@ import uuid
 import cv2
 import gym
 import numpy as np
+import pandas as pd
 
 from wrappers.common_wrappers import Wrapper
 
@@ -23,7 +24,7 @@ class VideoLogger(Wrapper):
         self.filename = None
         self.running_reward = 0
         self.actions = []
-        self.size = 512
+        self.size = 64
         self.flushed = False
         self.new_session = True
         self.add_to_name = ''
@@ -172,7 +173,6 @@ class Logger(Wrapper):
         self.running_reward += reward
         return obs, reward, done, info
 
-
 def cubes_coordinates(grid):
     z, x, y = np.where(grid > 0)
     points = []
@@ -180,55 +180,111 @@ def cubes_coordinates(grid):
         points.append([x[idx], y[idx], z[idx]])
     return points
 
-
-class SuccessRateWrapper(gym.Wrapper):
-    def __init__(self, env):
+class StatisticsLogger(Wrapper):
+    def __init__(self, env, st_name="iglu_dataset.csv"):
         super().__init__(env)
-        self.sr = 0
-        self.tasks_count = 0
-
+        print(st_name)
+        if os.path.isfile(st_name):
+            self.statisctics = pd.read_csv(st_name)
+            self.statisctics.set_index('TaskName', inplace=True)
+            self.old_values = True
+        else:
+            self.statisctics = pd.DataFrame(columns=['TaskName', *self.env.colums, 'RunsCount'])
+            self.statisctics.set_index('TaskName', inplace=True)
+            self.old_values = False
+        self.info = dict()
+        self.st_name = st_name
+    
     def reset(self):
-        self.sr = 0
-        self.tasks_count = 0
+        insert = []
+        name = self.env.figure.generator_name
+        if self.old_values:
+           # print(self.statisctics.loc)
+            if name in  self.statisctics.index.values:
+                runs_count = self.statisctics.loc[name]['RunsCount']
+               # print(runs_count)
+                runs_count += 1
+                #print(runs_count)
+            else:
+                runs_count = 1
+        else:
+            runs_count = 1
+            
+        print(self.env.colums)
+        for column in self.env.colums:           
+            if self.old_values and (name in  self.statisctics.index.values):
+                value = self.env.statistics[column] + self.statisctics.loc[name][column]
+             #   value = value/runs_count
+            else:
+                value = self.env.statistics[column]
+            insert.append(value)            
+        insert.append(runs_count)
+        self.statisctics.loc[name] = insert
+        self.statisctics.to_csv(self.st_name)
+        self.old_values = True
+        #print(self.statisctics)
         return super().reset()
-
-    def step(self, action):
-        observation, reward, done, info = self.env.step(action)
-        info['episode_extra_stats'] = info.get('episode_extra_stats', {})
-        roi = info['grid'][info['target_grid'] != 0]
-        blocks = np.where(roi != 0)
-        if reward > 1 or done:
-            self.tasks_count += 1
-            if reward > 1:
-                self.sr += 1
-            info['episode_extra_stats']['SuccessRate'] = self.sr / self.tasks_count
-        return observation, reward, done, info
-
-
+        
+    
+class Statistics(Wrapper):
+    def __init__(self, env):
+       # self.env.colums = None
+        super().__init__(env)
+        self.colums = []
+        self.statistics = dict()
+        
 class SuccessRateFullFigure(gym.Wrapper):
-
-    def step(self, action):
+    def __init__(self, env):
+       # self.env.colums = None
+        super().__init__(env)
+        if 'CoplitedRate' not in self.env.colums:
+            self.env.colums.append('CoplitedRate')
+            self.env.statistics['CoplitedRate'] = 0
+            print("ADD")
+    def step(self, action):          
         observation, reward, done, info = self.env.step(action)
         info['episode_extra_stats'] = info.get('episode_extra_stats', {})
+      #  print(self.env.colums)
         if done:
             if info['done'] == 'full':
                 info['episode_extra_stats']['CoplitedRate'] = 1
+                if self.env.colums:
+                    self.env.statistics['CoplitedRate'] = 1
             else:
+                
                 info['episode_extra_stats']['CoplitedRate'] = 0
+                if self.env.colums is not None:
+                    print("here - 2")
+                    self.env.statistics['CoplitedRate'] = 0
         return observation, reward, done, info
 
 
 class R1_score(gym.Wrapper):
-
-    def step(self, action):
+    def __init__(self, env):
+        #self.env.colums = None
+        super().__init__(env)
+        if 'R1_score' not in self.env.colums:
+            self.env.colums.append('R1_score')
+            self.env.statistics['R1_score'] = 0
+        if 'maximal_intersection' not in self.env.colums:
+            self.env.colums.append('maximal_intersection')
+            self.env.statistics['maximal_intersection'] = 0
+        if 'target_grid_size' not in self.env.colums:
+            self.env.colums.append('target_grid_size')
+            self.env.statistics['target_grid_size'] = 0
+        if 'current_grid_size' not in self.env.colums:
+            self.env.colums.append('current_grid_size')
+            self.env.statistics['current_grid_size'] = 0
+            
+    def step(self, action):           
         observation, reward, done, info = self.env.step(action)
         info['episode_extra_stats'] = info.get('episode_extra_stats', {})
         if done:
-            obs_grid = info['done_grid']
+            obs_grid = observation['grid']
             grid = np.zeros_like(obs_grid)
-            target = np.zeros_like(self.env.original)
+            target = np.zeros_like(info['target_voxel'])
             grid[obs_grid != 0] = 1
-            target[self.env.original != 0] = 1
+            target[info['target_voxel'] != 0] = 1
 
             maximal_intersection = (grid * target).sum()
             current_grid_size = grid.sum()
@@ -241,14 +297,18 @@ class R1_score(gym.Wrapper):
             else:
                 curr_f1 = 2 * curr_prec * curr_rec / (curr_rec + curr_prec)
 
-            if (target_grid_size == current_grid_size) and not self.env.modified and self.env.rp:
+            if (target_grid_size == current_grid_size):
                 curr_f1 = 1
                 maximal_intersection = target_grid_size
                 current_grid_size = target_grid_size
-
-            info['episode_extra_stats']['R1_score'] = curr_f1
-            info['episode_extra_stats']['maximal_intersection'] = maximal_intersection
-            info['episode_extra_stats']['target_grid_size'] = target_grid_size
-            info['episode_extra_stats']['current_grid_size'] = current_grid_size
-
+            if self.env.colums is not None:
+                print("here - 1")
+                info['episode_extra_stats']['R1_score'] = curr_f1
+                self.env.statistics['R1_score'] = curr_f1
+                info['episode_extra_stats']['maximal_intersection'] = maximal_intersection
+                self.env.statistics['maximal_intersection'] = maximal_intersection
+                info['episode_extra_stats']['target_grid_size'] = target_grid_size
+                self.env.statistics['target_grid_size'] = target_grid_size
+                info['episode_extra_stats']['current_grid_size'] = current_grid_size
+                self.env.statistics['current_grid_size'] = current_grid_size
         return observation, reward, done, info

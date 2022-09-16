@@ -106,6 +106,32 @@ class Figure():
             raise Exception("The figure is not initialized! Use 'make_task' method to do it!")
         return relief, holes, full_figure
 
+class CustomFigure(Figure):
+    row_figure = np.zeros((9,11,11))
+    generator_name = 'custom'
+    def __init__(self, figure = None, name = None, color = 6):
+        super().__init__()
+        self.color = color
+        if figure is None:
+            pass
+        else:            
+            self.row_figure = figure
+        if name is None:
+            pass
+        else:
+            self.generator_name = name
+
+    def make_task(self):     
+        if self.color is None:
+            self.color = np.random.randint(1,6, (9,11,11))
+        self.hole_indx = [[],[],[]]
+        figure = self.to_multitask_format(self.row_figure)        
+        self.simplify()
+        self.figure_parametrs['name'] = self.generator_name
+        self.figure_parametrs['color'] = self.row_figure * self.color
+        self.figure_parametrs['relief']= self.relief
+        return figure
+
 
 class RandomFigure(Figure):
     def __init__(self, cnf=None, color=1):

@@ -177,13 +177,14 @@ def flat_flying(env, camera_delta=5, step_delta = 1):
                         
     return discretes
 
-
+ 
 class Discretization(ActionsWrapper):
     def __init__(self, env, flatten = 'flying'):
         super().__init__(env)
         camera_delta = 5
         step_delta = 1
         self.discretes = flat_flying(env, camera_delta, step_delta)
+       # print(self.discretes[2:8])
         self.action_space = gym.spaces.Discrete(len(self.discretes))
         self.old_action_space = env.action_space
         self.last_action = None
@@ -204,11 +205,10 @@ class JumpAfterPlace(ActionsWrapper):
         super().__init__(env)
 
     def wrap_action(self, action=None):
-        if (action > self.act_space[0]) and (action < self.act_space[1]) > 0:
+        if (action > self.act_space[0]) and (action < self.act_space[1]):
             yield action
             yield 5
-            yield 5
-            
+            yield 5            
            # yield 5
         else:
             yield action
@@ -217,13 +217,16 @@ class JumpAfterPlace(ActionsWrapper):
 class ColorWrapper(ActionsWrapper):
     def __init__(self, env):
         super().__init__(env)
-        min_inventory_value = 5
-        max_inventory_value = 12
+        min_inventory_value = 1
+        max_inventory_value = 8
         self.color_space = (min_inventory_value, max_inventory_value)
 
     def wrap_action(self, action=None):
         tcolor = np.sum(self.env.task.target_grid)
+       # print(tcolor)
         if (action > self.color_space[0]) and (action < self.color_space[1]) and tcolor > 0:
+            print("hi!")
+            print(tcolor)
             if isinstance(self.env.figure, RandomFigure):
                 action = int(self.color_space[0] + np.random.randint(1, 6))
             else:

@@ -5,7 +5,7 @@ from gym.spaces import Box
 from sample_factory.algorithms.utils.multi_agent_wrapper import MultiAgentWrapper
 
 from wrappers.common_wrappers import VisualObservationWrapper, \
-    JumpAfterPlace, Discretization
+    JumpAfterPlace, Discretization, ColorWrapper
 from wrappers.loggers import SuccessRateFullFigure
 from wrappers.multitask import TargetGenerator, SubtaskGenerator
 from wrappers.reward_wrappers import RangetRewardFilledField, Closeness
@@ -46,6 +46,7 @@ def make_iglu(*args, **kwargs):
     env = VisualObservationWrapper(env)
 
     env = Discretization(env)
+    env = ColorWrapper(env)
     env = RangetRewardFilledField(env)
     env = Closeness(env)
 

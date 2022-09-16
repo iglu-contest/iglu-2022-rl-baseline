@@ -22,24 +22,42 @@ class MultitaskFormat(gym.Wrapper):
 
 
 class TargetGenerator(gym.Wrapper):
-    def __init__(self, env, make_holes=False, make_colors=False, fig_generator=RandomFigure):
+    def __init__(self, env, make_holes=False, make_colors=False, fig_generator=RandomFigure, tasks = None):
         super().__init__(env)
         self.make_holes = make_holes
         self.make_colors = make_colors
         self.figure = fig_generator()
+        self.fig_generator = fig_generator
+        self.task_id = 0
+        self.tasks = tasks
+       # print(self.tasks)
 
     def reset(self):
         X = []
+        self.task_id +=1
+        if self.tasks:
+            self.task_id %= len(self.tasks)
+        if self.tasks is not None:
+          #  print("set_task")
+            self.set_task_in_generator()
         self.figure.make_task()
         if isinstance(self.figure, RandomFigure):
-            min_block_in_fig = 10
+            min_block_in_fig = 4
         else:
             min_block_in_fig = 0
         while len(X) <= min_block_in_fig:
+           # print("rebuild")
             self.figure.make_task()
             relief = self.figure.figure_parametrs['relief']
             X, Y = np.where(relief != 0)
+        
         return super().reset()
+    
+    def set_task_in_generator(self):
+       # print("Update generator")
+        name = list(self.tasks.keys())[self.task_id]
+        figure = list(self.tasks.values())[self.task_id]
+        self.figure = self.fig_generator(figure = figure, name = name)                
 
 
 class SubtaskGenerator(gym.Wrapper):
@@ -156,4 +174,7 @@ class SubtaskGenerator(gym.Wrapper):
         self.last_agent_rotation = obs['agentPos'][3:]
         if self.steps >= self.steps_to_task:
             done = True
+        # Add targets to info
+        info['target_voxel'] = self.env.figure.figure_parametrs['figure']
+        info['current_target'] = self.env.task.target_grid
         return obs, reward, done, info
